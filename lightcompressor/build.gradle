@@ -1,0 +1,38 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+android {
+    compileSdkVersion 28
+
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation(Dep.kotlin)
+    implementation(Dep.corex)
+    implementation files('libs/isoparser-1.0.6.jar')
+    implementation files('libs/aspectjrt-1.7.3.jar')
+    implementation(Dep.coroutinesCore)
+    implementation(Dep.coroutinesAndroid)
+    testImplementation(Dep.junit)
+    androidTestImplementation(Dep.testJunit)
+    androidTestImplementation(Dep.espresso)
+}

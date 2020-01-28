@@ -1,0 +1,44 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion(Config.compileSdkVersion)
+    defaultConfig {
+        applicationId(Config.packageName)
+        minSdkVersion(Config.minSdkVersion)
+        targetSdkVersion(Config.targetSdkVersion)
+        versionCode(Config.versionCode)
+        versionName(Config.versionName)
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation(Dep.kotlin)
+    implementation(Dep.appcompat)
+    implementation(Dep.corex)
+    implementation(Dep.constraintlayout)
+    implementation(Dep.material)
+    implementation(Dep.glide)
+    implementation(Dep.coroutinesCore)
+    implementation(Dep.coroutinesAndroid)
+    kapt(Dep.glideCompiler)
+    implementation(Dep.exoPlayer)
+    implementation project(':lightcompressor')
+
+    testImplementation(Dep.junit)
+    androidTestImplementation(Dep.testJunit)
+    androidTestImplementation(Dep.espresso)
+}
