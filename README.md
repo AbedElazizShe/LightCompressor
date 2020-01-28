@@ -1,3 +1,6 @@
+[![JitPack](https://jitpack.io/v/AbedElazizShe/LightCompressor.svg)](https://jitpack.io/#AbedElazizShe/LightCompressor)
+
+
 # LightCompressor
 A powerful and easy-to-use video compression library for android uses [MediaCodec](https://developer.android.com/reference/android/media/MediaCodec) API. This library generates a compressed MP4 video with a modified width, height, and bitrate (the number of bits per
 seconds that determines the video and audio files’ size and quality). It is based on Telegram for Android source code.
@@ -117,7 +120,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.abedelazizshe:lightcompressor:0.1.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.1.0'
 ```
 
 ## Getting help
