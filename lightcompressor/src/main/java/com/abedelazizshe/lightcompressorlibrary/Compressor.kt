@@ -358,10 +358,10 @@ object Compressor {
      */
     private fun getBitrate(bitrate: Int): Int {
         return when {
-            bitrate >= 15000000 -> 2000000 // > 15MB becomes 2MB
-            bitrate >= 8000000 -> 1500000 // > 8MB becomes 1.5MB
-            bitrate >= 4000000 -> 1000000 // > 4MB becomes 1MB
-            else -> 750000 // other values become 750KB
+            bitrate >= 15000000 -> 2000000 // > 15Mbps becomes 2Mbps
+            bitrate >= 8000000 -> 1500000 // > 8Mbps becomes 1.5MbpsMB
+            bitrate >= 4000000 -> 1000000 // > 4Mbps becomes 1Mbps
+            else -> 750000 // other values become 750Kbps
         }
     }
 

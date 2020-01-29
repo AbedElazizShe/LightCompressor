@@ -18,9 +18,9 @@ When the video file is called to be compressed, the library checks for minimum s
 If the file has higher values than that, the library generates new size and bitrate for the output file as follows;
 ```kotlin
 when {
-   bitrate >= 15000000 -> 2000000 // > 15MB becomes 2MB
-   bitrate >= 8000000 -> 1500000 // > 8MB becomes 1.5MB
-   bitrate >= 4000000 -> 1000000 // > 4MB becomes 1MB
+   bitrate >= 15000000 -> 2000000 // > 15Mbps becomes 2Mbps
+   bitrate >= 8000000 -> 1500000 // > 8Mbps becomes 1.5Mbps
+   bitrate >= 4000000 -> 1000000 // > 4Mbps becomes 1Mbps
    else -> 750000 // other values become 750KB
 }
 
