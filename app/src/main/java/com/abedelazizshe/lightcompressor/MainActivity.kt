@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.text.format.DateUtils
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -41,6 +42,10 @@ class MainActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             pickVideo()
+        }
+
+        cancel.setOnClickListener {
+            VideoCompressor.cancel()
         }
 
         videoLayout.setOnClickListener { VideoPlayerActivity.start(this, path) }
@@ -88,7 +93,7 @@ class MainActivity : AppCompatActivity() {
 
                     var time = 0L
 
-                    VideoCompressor.doVideoCompression(
+                    VideoCompressor.start(
                         path,
                         desFile.path,
                         object : CompressionListener {
@@ -121,6 +126,10 @@ class MainActivity : AppCompatActivity() {
                                 progress.text = "This video cannot be compressed!"
                             }
 
+                            override fun onCancelled() {
+                                Log.wtf("TAG", "compression has been canclled")
+                                // make UI changes, cleanup, etc
+                            }
                         })
                 }
             }

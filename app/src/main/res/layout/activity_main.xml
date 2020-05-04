@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
 
-        <FrameLayout
+        <RelativeLayout
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -21,13 +21,23 @@
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_centerInParent="true"
                 android:text="@string/home_title"
                 android:textColor="@color/colorWhite"
                 android:textSize="16sp" />
-        </FrameLayout>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/cancel"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="cancel"
+                />
+        </RelativeLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
+
 
     <RelativeLayout
         android:visibility="gone"

@@ -7,6 +7,7 @@ import android.util.Log
 import java.io.File
 import java.lang.Exception
 import java.nio.ByteBuffer
+import kotlin.math.roundToInt
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -16,10 +17,11 @@ import java.nio.ByteBuffer
 object Compressor {
 
     private const val MIN_BITRATE = 2000000
-    private const val MIN_HEIGHT = 640
-    private const val MIN_WIDTH = 360
+    private const val MIN_HEIGHT = 640.0
+    private const val MIN_WIDTH = 360.0
     private const val MIME_TYPE = "video/avc"
 
+    var isRunning = true
 
     fun compressVideo(
         source: String,
@@ -54,7 +56,7 @@ object Compressor {
         val newBitrate = getBitrate(bitrate)
 
         //Handle new width and height values
-        var (newWidth, newHeight) = generateWidthAndHeight(width, height)
+        var (newWidth, newHeight) = generateWidthAndHeight(width.toDouble(), height.toDouble())
 
         //Handle rotation values and swapping height and width if needed
         rotation = when (rotation) {
@@ -190,6 +192,12 @@ object Compressor {
                             var encoderOutputAvailable = true
 
                             loop@ while (decoderOutputAvailable || encoderOutputAvailable) {
+
+                                if(!isRunning){
+                                    listener.onProgressCancelled()
+                                    return false
+                                }
+
                                 //Encoder
                                 val encoderStatus = encoder.dequeueOutputBuffer(bufferInfo, 0)
 
@@ -371,19 +379,19 @@ object Compressor {
      * @param height file's original height
      * @return new width and height pair
      */
-    private fun generateWidthAndHeight(width: Int, height: Int): Pair<Int, Int> {
+    private fun generateWidthAndHeight(width: Double, height: Double): Pair<Int, Int> {
 
-        val newWidth: Int
-        val newHeight: Int
+        val newWidth: Double
+        val newHeight: Double
 
         when {
             width >= 1920 || height >= 1920 -> {
-                newWidth = (width * 0.5).toInt()
-                newHeight = (height * 0.5).toInt()
+                newWidth = (width * 0.5)
+                newHeight = (height * 0.5)
             }
             width >= 1280 || height >= 1280 -> {
-                newWidth = (width * 0.75).toInt()
-                newHeight = (height * 0.75).toInt()
+                newWidth = (width * 0.75)
+                newHeight = (height * 0.75)
             }
             width >= 960 || height >= 960 -> {
                 newWidth = MIN_HEIGHT
@@ -395,7 +403,7 @@ object Compressor {
             }
         }
 
-        return Pair(newWidth, newHeight)
+        return Pair(2 * ((newWidth / 2).roundToInt()), 2 * ((newHeight / 2).roundToInt()))
     }
 
     /**
