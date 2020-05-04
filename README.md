@@ -120,7 +120,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.1.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.2.0'
 ```
 
 ## Getting help
