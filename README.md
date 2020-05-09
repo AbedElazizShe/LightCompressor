@@ -62,11 +62,14 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutin
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
 
-Then just call [doVideoCompression] and pass both source and destination file paths. The method has a callback for 4 functions;
+Then just call [doVideoCompression] and pass both source and destination file paths. The method has a callback for 5 functions;
 1) OnStart - called when compression started
 2) OnSuccess - called when compression completed with no errors/exceptions
-3) OnFailure - called when an exception occured or video bitrate and size are below the minimum required for compression.
+3) OnFailure - called when an exception occurred or video bitrate and size are below the minimum required for compression.
 4) OnProgress - called with progress new value
+5) OnCancelled - called when the job is cancelled
+
+To cancel the compression job, just call [VideoCompressor.cancel()]
 
 ```kotlin
 VideoCompressor.doVideoCompression(
@@ -74,7 +77,7 @@ VideoCompressor.doVideoCompression(
    desFile.path,
    object : CompressionListener {
        override fun onProgress(percent: Float) {
-        // Update UI with progress value
+          // Update UI with progress value
        }
 
        override fun onStart() {
@@ -86,7 +89,11 @@ VideoCompressor.doVideoCompression(
        }
 
        override fun onFailure() {
-       // On Failure
+         // On Failure
+       }
+
+       override fun onCancelled() {
+         // On Cancelled
        }
 
    })
