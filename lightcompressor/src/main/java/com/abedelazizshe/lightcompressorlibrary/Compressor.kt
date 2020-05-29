@@ -28,6 +28,8 @@ object Compressor {
     fun compressVideo(
             source: String,
             destination: String,
+            quality: VideoQuality,
+            isMinBitRateEnabled: Boolean,
             listener: CompressionProgressListener
     ): Boolean {
 
@@ -53,10 +55,10 @@ object Compressor {
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
-        if (bitrate <= MIN_BITRATE) return false
+        if (isMinBitRateEnabled && bitrate <= MIN_BITRATE) return false
 
         //Handle new bitrate value
-        val newBitrate = getBitrate(bitrate)
+        val newBitrate = getBitrate(bitrate, quality)
 
         //Handle new width and height values
         var (newWidth, newHeight) = generateWidthAndHeight(width.toDouble(), height.toDouble())
@@ -379,12 +381,12 @@ object Compressor {
      * @param bitrate file's current bitrate
      * @return new smaller bitrate value
      */
-    private fun getBitrate(bitrate: Int): Int {
-        return when {
-            bitrate >= 15000000 -> 2000000 // > 15Mbps becomes 2Mbps
-            bitrate >= 8000000 -> 1500000 // > 8Mbps becomes 1.5MbpsMB
-            bitrate >= 4000000 -> 1000000 // > 4Mbps becomes 1Mbps
-            else -> 750000 // other values become 750Kbps
+    private fun getBitrate(bitrate: Int, quality: VideoQuality): Int {
+
+        return when (quality) {
+            VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
+            VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
+            VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
         }
     }
 
@@ -413,8 +415,8 @@ object Compressor {
                 newHeight = MIN_WIDTH
             }
             else -> {
-                newWidth = width
-                newHeight = height
+                newWidth = width * 0.9
+                newHeight = height * 0.9
             }
         }
 

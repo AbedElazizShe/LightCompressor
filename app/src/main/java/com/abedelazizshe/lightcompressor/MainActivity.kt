@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
+import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
@@ -133,7 +134,7 @@ class MainActivity : AppCompatActivity() {
                                     Log.wtf("TAG", "compression has been cancelled")
                                     // make UI changes, cleanup, etc
                                 }
-                            })
+                            }, VideoQuality.MEDIUM, isMinBitRateEnabled = false)
                 }
             }
 

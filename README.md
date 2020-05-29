@@ -10,18 +10,15 @@ The general idea of how the library works is that, extreme high bitrate is reduc
 I would like to mention that the set attributes for size and quality worked just great in my projects and met the expectations. It may or may not meet yours. I’d appreciate your feedback so I can enhance the compression process.
 
 ## How it works
-When the video file is called to be compressed, the library checks for minimum size and bitrate to determines whether the video needs to be compressed or not. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum values set here are;
+When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
 * Bitrate: 2MB
-* Height: 640
-* Width: 360
 
-If the file has higher values than that, the library generates new size and bitrate for the output file as follows;
+You can pass one of a 3 video qualities; High, Medium, or Low and the library will handle generating the right bitrate value for the output video
 ```kotlin
-when {
-   bitrate >= 15000000 -> 2000000 // > 15Mbps becomes 2Mbps
-   bitrate >= 8000000 -> 1500000 // > 8Mbps becomes 1.5Mbps
-   bitrate >= 4000000 -> 1000000 // > 4Mbps becomes 1Mbps
-   else -> 750000 // other values become 750KB
+return when (quality) {
+    VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
+    VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
+    VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
 }
 
 when {
@@ -69,6 +66,8 @@ Then just call [doVideoCompression] and pass both source and destination file pa
 4) OnProgress - called with progress new value
 5) OnCancelled - called when the job is cancelled
 
+You can pass the optional video quality (default is medium) and if to enable checking for min bitrate (default is true)
+
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
 ```kotlin
@@ -96,7 +95,7 @@ VideoCompressor.doVideoCompression(
          // On Cancelled
        }
 
-   })
+   }, VideoQuality.MEDIUM, isMinBitRateEnabled = false)
 ```
 
 ## Compatibility
@@ -104,7 +103,7 @@ Minimum Android SDK: LightCompressor requires a minimum API level of 21.
 
 ## Performance
 This method was tested on Pixel, Huawei, Xiaomi, Samsung and Nokia phones and more than 150 videos.
-Here’s some results from pixel 2 XL;
+Here’s some results from pixel 2 XL (medium quality);
 * 94.3MB compressed to 9.2MB in 11 seconds
 * 151.2MB compressed to 14.7MB in 18 seconds
 * 65.7MB compressed to 6.4MB in 8 seconds
@@ -127,7 +126,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.2.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.3.0'
 ```
 
 ## Getting help
