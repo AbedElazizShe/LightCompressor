@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
+import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
@@ -79,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                     GlideApp.with(this).load(uri).into(videoImage)
 
                     val downloadsPath =
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     val desFile = File(downloadsPath, "${System.currentTimeMillis()}_${file.name}")
                     if (desFile.exists()) {
                         desFile.delete()
@@ -94,43 +95,46 @@ class MainActivity : AppCompatActivity() {
                     var time = 0L
 
                     VideoCompressor.start(
-                        path,
-                        desFile.path,
-                        object : CompressionListener {
-                            override fun onProgress(percent: Float) {
-                                //Update UI
-                                progress.text = "${percent.toLong()}%"
-                            }
-                            override fun onStart() {
-                                time = System.currentTimeMillis()
-                                progress.visibility = View.VISIBLE
-                                originalSize.text = "Original size: ${getFileSize(file.length())}"
-                            }
-                            override fun onSuccess() {
-                                val newSizeValue = desFile.length()
+                            path,
+                            desFile.path,
+                            object : CompressionListener {
+                                override fun onProgress(percent: Float) {
+                                    //Update UI
+                                    progress.text = "${percent.toLong()}%"
+                                }
 
-                                newSize.text =
-                                    "Size after compression: ${getFileSize(newSizeValue)}"
+                                override fun onStart() {
+                                    time = System.currentTimeMillis()
+                                    progress.visibility = View.VISIBLE
+                                    originalSize.text = "Original size: ${getFileSize(file.length())}"
+                                }
 
-                                time = System.currentTimeMillis() - time
-                                timeTaken.text =
-                                    "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
+                                override fun onSuccess() {
+                                    val newSizeValue = desFile.length()
 
-                                path = desFile.path
+                                    newSize.text =
+                                            "Size after compression: ${getFileSize(newSizeValue)}"
 
-                                Handler().postDelayed({
-                                    progress.visibility = View.GONE
-                                }, 50)
-                            }
-                            override fun onFailure() {
-                                progress.text = "This video cannot be compressed!"
-                            }
+                                    time = System.currentTimeMillis() - time
+                                    timeTaken.text =
+                                            "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
 
-                            override fun onCancelled() {
-                                Log.wtf("TAG", "compression has been canclled")
-                                // make UI changes, cleanup, etc
-                            }
-                        })
+                                    path = desFile.path
+
+                                    Handler().postDelayed({
+                                        progress.visibility = View.GONE
+                                    }, 50)
+                                }
+
+                                override fun onFailure() {
+                                    progress.text = "This video cannot be compressed!"
+                                }
+
+                                override fun onCancelled() {
+                                    Log.wtf("TAG", "compression has been cancelled")
+                                    // make UI changes, cleanup, etc
+                                }
+                            }, VideoQuality.MEDIUM, isMinBitRateEnabled = false)
                 }
             }
 
@@ -139,21 +143,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun setReadStoragePermission() {
         if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
+                        this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) != PackageManager.PERMISSION_GRANTED
         ) {
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
+                            this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
             ) {
             } else {
                 ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    1
+                        this,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        1
                 )
             }
         }

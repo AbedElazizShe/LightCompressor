@@ -4,14 +4,18 @@ import com.abedelazizshe.lightcompressorlibrary.Compressor.compressVideo
 import com.abedelazizshe.lightcompressorlibrary.Compressor.isRunning
 import kotlinx.coroutines.*
 
+enum class VideoQuality {
+    HIGH, MEDIUM, LOW
+}
+
 object VideoCompressor : CoroutineScope by MainScope() {
 
     private var job: Job = Job()
 
-   private fun doVideoCompression(srcPath: String, destPath: String, listener: CompressionListener) = launch {
+    private fun doVideoCompression(srcPath: String, destPath: String, quality: VideoQuality, isMinBitRateEnabled: Boolean, listener: CompressionListener) = launch {
         isRunning = true
         listener.onStart()
-        val result = startCompression(srcPath, destPath, listener)
+        val result = startCompression(srcPath, destPath, quality, isMinBitRateEnabled, listener)
 
         // Runs in Main(UI) Thread
         if (result) {
@@ -22,19 +26,20 @@ object VideoCompressor : CoroutineScope by MainScope() {
 
     }
 
-    fun start(srcPath: String, destPath: String, listener: CompressionListener){
-       job =  doVideoCompression(srcPath, destPath, listener)
+    fun start(srcPath: String, destPath: String, listener: CompressionListener, quality: VideoQuality = VideoQuality.MEDIUM, isMinBitRateEnabled: Boolean = true) {
+        job = doVideoCompression(srcPath, destPath, quality, isMinBitRateEnabled, listener)
     }
 
-    fun cancel(){
+    fun cancel() {
         job.cancel()
         isRunning = false
     }
 
     // To run code in Background Thread
-    private suspend fun startCompression(srcPath: String, destPath: String, listener: CompressionListener) : Boolean = withContext(Dispatchers.IO){
+    private suspend fun startCompression(srcPath: String, destPath: String, quality: VideoQuality, isMinBitRateEnabled: Boolean,
+                                         listener: CompressionListener): Boolean = withContext(Dispatchers.IO) {
 
-        return@withContext compressVideo(srcPath, destPath, object : CompressionProgressListener {
+        return@withContext compressVideo(srcPath, destPath, quality, isMinBitRateEnabled, object : CompressionProgressListener {
             override fun onProgressChanged(percent: Float) {
                 listener.onProgress(percent)
             }
