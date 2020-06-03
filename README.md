@@ -71,7 +71,7 @@ You can pass the optional video quality (default is medium) and if to enable che
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
 ```kotlin
-VideoCompressor.doVideoCompression(
+VideoCompressor.start(
    path,
    desFile.path,
    object : CompressionListener {
