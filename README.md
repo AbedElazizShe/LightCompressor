@@ -70,6 +70,8 @@ You can pass the optional video quality (default is medium) and if to enable che
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
+### Kotlin
+
 ```kotlin
 VideoCompressor.start(
    path,
@@ -96,6 +98,37 @@ VideoCompressor.start(
        }
 
    }, VideoQuality.MEDIUM, isMinBitRateEnabled = false)
+```
+### Java
+
+```java
+ VideoCompressor.INSTANCE.start(path, desFile.path, new CompressionListener() {
+       @Override
+       public void onStart() {
+         // Compression start
+       }
+
+       @Override
+       public void onSuccess() {
+         // On Compression success
+       }
+
+       @Override
+       public void onFailure() {
+         // On Failure
+       }
+
+       @Override
+       public void onProgress(float v) {
+         // Update UI with progress value
+       }
+
+       @Override
+       public void onCancelled() {
+         // On Cancelled
+       }
+ }, VideoQuality.MEDIUM, true);
+
 ```
 
 ## Compatibility
