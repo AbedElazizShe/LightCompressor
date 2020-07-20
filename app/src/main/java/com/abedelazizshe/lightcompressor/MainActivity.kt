@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
                                     Log.wtf("TAG", "compression has been cancelled")
                                     // make UI changes, cleanup, etc
                                 }
-                            }, VideoQuality.MEDIUM, isMinBitRateEnabled = false)
+                            }, VideoQuality.MEDIUM, isMinBitRateEnabled = false, keepOriginalResolution = false)
                 }
             }
 
