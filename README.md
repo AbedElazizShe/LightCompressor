@@ -66,7 +66,8 @@ Then just call [doVideoCompression] and pass both source and destination file pa
 4) OnProgress - called with progress new value
 5) OnCancelled - called when the job is cancelled
 
-You can pass the optional video quality (default is medium) and if to enable checking for min bitrate (default is true)
+You can pass the optional video quality (default is medium) and if to enable checking for min bitrate (default is true), in addition, if you wish to keep the
+original video width and height from being changed during compression, you can pass true or false for keepOriginalResolution where default is false.
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
@@ -97,7 +98,7 @@ VideoCompressor.start(
          // On Cancelled
        }
 
-   }, VideoQuality.MEDIUM, isMinBitRateEnabled = false)
+   }, VideoQuality.MEDIUM, isMinBitRateEnabled = false, keepOriginalResolution = false)
 ```
 ### Java
 
@@ -127,7 +128,7 @@ VideoCompressor.start(
        public void onCancelled() {
          // On Cancelled
        }
- }, VideoQuality.MEDIUM, true);
+ }, VideoQuality.MEDIUM, true, false);
 
 ```
 
@@ -159,7 +160,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.4.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.5.0'
 ```
 
 ## Getting help
