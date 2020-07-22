@@ -128,7 +128,7 @@ VideoCompressor.start(
        public void onCancelled() {
          // On Cancelled
        }
- }, VideoQuality.MEDIUM, true, false);
+ }, VideoQuality.MEDIUM, false, false);
 
 ```
 
