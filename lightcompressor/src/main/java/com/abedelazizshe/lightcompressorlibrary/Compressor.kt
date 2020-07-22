@@ -23,6 +23,10 @@ object Compressor {
     private const val I_FRAME_INTERVAL = 15
     private const val MIME_TYPE = "video/avc"
 
+    private const val INVALID_BITRATE =
+        "The provided bitrate is smaller than what is needed for compression" +
+                "try to set isMinBitRateEnabled to false"
+
     var isRunning = true
 
     fun compressVideo(
@@ -32,7 +36,7 @@ object Compressor {
         isMinBitRateEnabled: Boolean,
         keepOriginalResolution: Boolean,
         listener: CompressionProgressListener
-    ): Boolean {
+    ): Result {
 
         //Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
@@ -56,7 +60,8 @@ object Compressor {
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
-        if (isMinBitRateEnabled && bitrate <= MIN_BITRATE) return false
+        if (isMinBitRateEnabled && bitrate <= MIN_BITRATE)
+            return Result(success = false, failureMessage = INVALID_BITRATE)
 
         //Handle new bitrate value
         val newBitrate = getBitrate(bitrate, quality)
@@ -81,7 +86,10 @@ object Compressor {
         }
 
         val file = File(source)
-        if (!file.canRead()) return false
+        if (!file.canRead()) return Result(
+            success = false,
+            failureMessage = "The source file cannot be accessed!"
+        )
 
         var noExceptions = true
 
@@ -213,7 +221,10 @@ object Compressor {
 
                             if (!isRunning) {
                                 listener.onProgressCancelled()
-                                return false
+                                return Result(
+                                    success = false,
+                                    failureMessage = "The compression has been stopped!"
+                                )
                             }
 
                             //Encoder
@@ -366,10 +377,10 @@ object Compressor {
                 printException(exception)
             }
 
-            return true
+            return Result(success = true, failureMessage = null)
         }
 
-        return false
+        return Result(success = false, failureMessage = "Something went wrong, please try again")
 
     }
 

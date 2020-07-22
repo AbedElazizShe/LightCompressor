@@ -18,22 +18,40 @@ object VideoCompressor : CoroutineScope by MainScope() {
     ) = launch {
         isRunning = true
         listener.onStart()
-        val result = startCompression(srcPath, destPath, quality, isMinBitRateEnabled, keepOriginalResolution, listener)
+        val result = startCompression(
+            srcPath,
+            destPath,
+            quality,
+            isMinBitRateEnabled,
+            keepOriginalResolution,
+            listener
+        )
 
         // Runs in Main(UI) Thread
-        if (result) {
+        if (result.success) {
             listener.onSuccess()
         } else {
-            listener.onFailure()
+            listener.onFailure(result.failureMessage ?: "An error has occurred!")
         }
 
     }
 
     fun start(
-        srcPath: String, destPath: String, listener: CompressionListener,
-        quality: VideoQuality = VideoQuality.MEDIUM, isMinBitRateEnabled: Boolean = true, keepOriginalResolution: Boolean = false
+        srcPath: String,
+        destPath: String,
+        listener: CompressionListener,
+        quality: VideoQuality = VideoQuality.MEDIUM,
+        isMinBitRateEnabled: Boolean = true,
+        keepOriginalResolution: Boolean = false
     ) {
-        job = doVideoCompression(srcPath, destPath, quality, isMinBitRateEnabled, keepOriginalResolution, listener)
+        job = doVideoCompression(
+            srcPath,
+            destPath,
+            quality,
+            isMinBitRateEnabled,
+            keepOriginalResolution,
+            listener
+        )
     }
 
     fun cancel() {
@@ -45,7 +63,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
     private suspend fun startCompression(
         srcPath: String, destPath: String, quality: VideoQuality, isMinBitRateEnabled: Boolean,
         keepOriginalResolution: Boolean, listener: CompressionListener
-    ): Boolean = withContext(Dispatchers.IO) {
+    ): Result = withContext(Dispatchers.IO) {
 
         return@withContext compressVideo(
             srcPath,

@@ -22,22 +22,22 @@ return when (quality) {
 }
 
 when {
-   width >= 1920 || height >= 1920 -> {
-       newWidth = (width * 0.5).toInt()
-       newHeight = (height * 0.5).toInt()
-   }
-   width >= 1280 || height >= 1280 -> {
-       newWidth = (width * 0.75).toInt()
-       newHeight = (height * 0.75).toInt()
-   }
-   width >= 960 || height >= 960 -> {
-       newWidth = MIN_HEIGHT
-       newHeight = MIN_WIDTH
-   }
-   else -> {
-       newWidth = width
-       newHeight = height
-   }
+    width >= 1920 || height >= 1920 -> {
+        newWidth = (width * 0.5)
+        newHeight = (height * 0.5)
+    }
+    width >= 1280 || height >= 1280 -> {
+        newWidth = (width * 0.75)
+        newHeight = (height * 0.75)
+    }
+    width >= 960 || height >= 960 -> {
+        newWidth = MIN_HEIGHT * 0.95
+        newHeight = MIN_WIDTH * 0.95
+    }
+    else -> {
+        newWidth = width * 0.9
+        newHeight = height * 0.9
+    }
 }
 ```
 These values were tested on a huge set of videos and worked fine and fast with them. They might be changed based on the project needs and expectations.
@@ -90,7 +90,7 @@ VideoCompressor.start(
          // On Compression success
        }
 
-       override fun onFailure() {
+       override fun onFailure(failureMessage: String) {
          // On Failure
        }
 
@@ -115,7 +115,7 @@ VideoCompressor.start(
        }
 
        @Override
-       public void onFailure() {
+       public void onFailure(String failureMessage) {
          // On Failure
        }
 
@@ -160,7 +160,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.5.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.6.0'
 ```
 
 ## Getting help

@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                     GlideApp.with(this).load(uri).into(videoImage)
 
                     val downloadsPath =
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     val desFile = File(downloadsPath, "${System.currentTimeMillis()}_${file.name}")
                     if (desFile.exists()) {
                         desFile.delete()
@@ -95,46 +95,50 @@ class MainActivity : AppCompatActivity() {
                     var time = 0L
 
                     VideoCompressor.start(
-                            path,
-                            desFile.path,
-                            object : CompressionListener {
-                                override fun onProgress(percent: Float) {
-                                    //Update UI
-                                    progress.text = "${percent.toLong()}%"
-                                }
+                        path,
+                        desFile.path,
+                        object : CompressionListener {
+                            override fun onProgress(percent: Float) {
+                                //Update UI
+                                progress.text = "${percent.toLong()}%"
+                            }
 
-                                override fun onStart() {
-                                    time = System.currentTimeMillis()
-                                    progress.visibility = View.VISIBLE
-                                    originalSize.text = "Original size: ${getFileSize(file.length())}"
-                                }
+                            override fun onStart() {
+                                time = System.currentTimeMillis()
+                                progress.visibility = View.VISIBLE
+                                originalSize.text = "Original size: ${getFileSize(file.length())}"
+                            }
 
-                                override fun onSuccess() {
-                                    val newSizeValue = desFile.length()
+                            override fun onSuccess() {
+                                val newSizeValue = desFile.length()
 
-                                    newSize.text =
-                                            "Size after compression: ${getFileSize(newSizeValue)}"
+                                newSize.text =
+                                    "Size after compression: ${getFileSize(newSizeValue)}"
 
-                                    time = System.currentTimeMillis() - time
-                                    timeTaken.text =
-                                            "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
+                                time = System.currentTimeMillis() - time
+                                timeTaken.text =
+                                    "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
 
-                                    path = desFile.path
+                                path = desFile.path
 
-                                    Handler().postDelayed({
-                                        progress.visibility = View.GONE
-                                    }, 50)
-                                }
+                                Handler().postDelayed({
+                                    progress.visibility = View.GONE
+                                }, 50)
+                            }
 
-                                override fun onFailure() {
-                                    progress.text = "This video cannot be compressed!"
-                                }
+                            override fun onFailure(failureMessage: String) {
+                                progress.text = "failureMessage"
+                            }
 
-                                override fun onCancelled() {
-                                    Log.wtf("TAG", "compression has been cancelled")
-                                    // make UI changes, cleanup, etc
-                                }
-                            }, VideoQuality.MEDIUM, isMinBitRateEnabled = false, keepOriginalResolution = false)
+                            override fun onCancelled() {
+                                Log.wtf("TAG", "compression has been cancelled")
+                                // make UI changes, cleanup, etc
+                            }
+                        },
+                        VideoQuality.MEDIUM,
+                        isMinBitRateEnabled = false,
+                        keepOriginalResolution = false
+                    )
                 }
             }
 
@@ -143,21 +147,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun setReadStoragePermission() {
         if (ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(
-                            this,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    )
+                    this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
             ) {
             } else {
                 ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                        1
+                    this,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    1
                 )
             }
         }
