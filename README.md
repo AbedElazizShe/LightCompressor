@@ -80,6 +80,12 @@ VideoCompressor.start(
    object : CompressionListener {
        override fun onProgress(percent: Float) {
           // Update UI with progress value
+          runOnUiThread {
+             // update a text view
+             progress.text = "${percent.toLong()}%"
+             // update a progress bar
+             progressBar.progress = percent.toInt()
+          }
        }
 
        override fun onStart() {
@@ -122,6 +128,12 @@ VideoCompressor.start(
        @Override
        public void onProgress(float v) {
          // Update UI with progress value
+         runOnUiThread(new Runnable() {
+            public void run() {
+                progress.setText(progressPercent + "%");
+                progressBar.setProgress((int) progressPercent);
+           }
+         });
        }
 
        @Override
@@ -131,6 +143,10 @@ VideoCompressor.start(
  }, VideoQuality.MEDIUM, false, false);
 
 ```
+
+## Common issues
+You cannot call Toast.makeText() and other functions dealing with the UI directly in onProgress() which is a worker thread. They need to be called
+from within the main thread. Have a look at the example code above for more information.
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.

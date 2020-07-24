@@ -27,73 +27,82 @@
                 android:textSize="16sp" />
 
             <Button
+                android:id="@+id/cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/cancel"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:text="cancel"
-                />
+                android:text="cancel" />
         </RelativeLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
 
     <RelativeLayout
-        android:visibility="gone"
         android:id="@+id/mainContents"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="16dp"
+        android:visibility="gone"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <include layout="@layout/content_main"
+        <include
             android:id="@+id/videoLayout"
+            layout="@layout/content_main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"/>
+            android:layout_centerHorizontal="true" />
 
         <TextView
+            android:id="@+id/originalSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/videoLayout"
             android:layout_marginTop="16dp"
             android:textColor="@color/colorBlack"
             android:textSize="16sp"
-            android:id="@+id/originalSize"
-            tools:text="Original Size"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/videoLayout" />
+            tools:text="Original Size" />
 
 
         <TextView
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/originalSize"
             android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
             android:textColor="@color/colorPrimary"
             android:textSize="32sp"
-            android:id="@+id/progress"
-            tools:text="Progress"
-            android:gravity="center_horizontal"
+            tools:text="Progress" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/originalSize" />
+            android:layout_below="@id/progress"
+            android:max="100"
+            android:progress="0" />
 
         <TextView
+            android:id="@+id/newSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/progressBar"
             android:layout_marginTop="8dp"
             android:textColor="@color/colorBlack"
             android:textSize="16sp"
-            android:id="@+id/newSize"
-            tools:text="Size after compression"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/progress" />
+            tools:text="Size after compression" />
 
         <TextView
+            android:id="@+id/timeTaken"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/newSize"
             android:layout_marginTop="8dp"
             android:textColor="@color/colorBrown"
             android:textSize="16sp"
-            android:id="@+id/timeTaken"
-            tools:text="Duration"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/newSize" />
+            tools:text="Duration" />
 
     </RelativeLayout>
 

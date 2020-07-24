@@ -100,12 +100,17 @@ class MainActivity : AppCompatActivity() {
                         object : CompressionListener {
                             override fun onProgress(percent: Float) {
                                 //Update UI
-                                progress.text = "${percent.toLong()}%"
+                                runOnUiThread {
+                                    progress.text = "${percent.toLong()}%"
+                                    progressBar.progress = percent.toInt()
+                                }
+
                             }
 
                             override fun onStart() {
                                 time = System.currentTimeMillis()
                                 progress.visibility = View.VISIBLE
+                                progressBar.visibility = View.VISIBLE
                                 originalSize.text = "Original size: ${getFileSize(file.length())}"
                             }
 
@@ -123,6 +128,7 @@ class MainActivity : AppCompatActivity() {
 
                                 Handler().postDelayed({
                                     progress.visibility = View.GONE
+                                    progressBar.visibility = View.GONE
                                 }, 50)
                             }
 
