@@ -7,13 +7,13 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion(Config.compileSdkVersion)
+    compileSdkVersion 29
     defaultConfig {
-        applicationId(Config.packageName)
-        minSdkVersion(Config.minSdkVersion)
-        targetSdkVersion(Config.targetSdkVersion)
-        versionCode(Config.versionCode)
-        versionName(Config.versionName)
+        applicationId "com.abedelazizshe.lightcompressor"
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -26,19 +26,19 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation(Dep.kotlin)
-    implementation(Dep.appcompat)
-    implementation(Dep.corex)
-    implementation(Dep.constraintlayout)
-    implementation(Dep.material)
-    implementation(Dep.glide)
-    implementation(Dep.coroutinesCore)
-    implementation(Dep.coroutinesAndroid)
-    kapt(Dep.glideCompiler)
-    implementation(Dep.exoPlayer)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
+    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "androidx.core:core-ktx:${project.androidX}"
+    implementation "androidx.constraintlayout:constraintlayout:${project.constraintlayout}"
+    implementation "com.google.android.material:material:${project.material}"
+    implementation "com.github.bumptech.glide:glide:${project.glide}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.coroutines}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${project.coroutines}"
+    kapt "com.github.bumptech.glide:compiler:${project.glide}"
+    implementation "com.google.android.exoplayer:exoplayer:${project.exoPlayer}"
     implementation project(':lightcompressor')
 
-    testImplementation(Dep.junit)
-    androidTestImplementation(Dep.testJunit)
-    androidTestImplementation(Dep.espresso)
+    testImplementation "junit:junit:${project.junit}"
+    androidTestImplementation "androidx.test.ext:junit:${project.testJunit}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${project.espresso}"
 }

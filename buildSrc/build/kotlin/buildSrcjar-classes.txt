@@ -1,1 +1,0 @@
-E:\AndroidStudioProjects\VideoCompressor\buildSrc\build\classes\kotlin\main\Config.class;E:\AndroidStudioProjects\VideoCompressor\buildSrc\build\classes\kotlin\main\Dep$Version.class;E:\AndroidStudioProjects\VideoCompressor\buildSrc\build\classes\kotlin\main\Dep.class

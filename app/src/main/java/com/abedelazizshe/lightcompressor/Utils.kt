@@ -13,7 +13,7 @@ fun getMediaPath(context: Context, uri: Uri?): String {
     val projection = arrayOf(MediaStore.Video.Media.DATA)
     var cursor: Cursor? = null
     try {
-        cursor = context.contentResolver.query(uri, projection, null, null, null)
+        cursor = context.contentResolver.query(uri!!, projection, null, null, null)
         return if (cursor != null) {
             val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
             cursor.moveToFirst()

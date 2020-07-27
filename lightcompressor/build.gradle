@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
@@ -26,13 +26,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation(Dep.kotlin)
-    implementation(Dep.corex)
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
+    implementation "androidx.core:core-ktx:${project.androidX}"
     implementation files('libs/isoparser-1.0.6.jar')
     implementation files('libs/aspectjrt-1.7.3.jar')
-    implementation(Dep.coroutinesCore)
-    implementation(Dep.coroutinesAndroid)
-    testImplementation(Dep.junit)
-    androidTestImplementation(Dep.testJunit)
-    androidTestImplementation(Dep.espresso)
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.coroutines}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${project.coroutines}"
+    testImplementation "junit:junit:${project.junit}"
+    androidTestImplementation "androidx.test.ext:junit:${project.testJunit}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${project.espresso}"
 }
+

@@ -173,7 +173,7 @@ object Compressor {
                                 val inputBufferIndex = decoder.dequeueInputBuffer(0)
                                 if (inputBufferIndex >= 0) {
                                     val inputBuffer = decoder.getInputBuffer(inputBufferIndex)
-                                    val chunkSize = extractor.readSampleData(inputBuffer, 0)
+                                    val chunkSize = extractor.readSampleData(inputBuffer!!, 0)
                                     when {
                                         chunkSize < 0 -> {
                                             decoder.queueInputBuffer(

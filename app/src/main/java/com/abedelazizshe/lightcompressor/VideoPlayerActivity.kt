@@ -39,7 +39,7 @@ class VideoPlayerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_video_player)
 
         if (intent != null) {
-            val bundle: Bundle = intent.extras
+            val bundle: Bundle = intent.extras!!
             uri = bundle.getString("uri", "")
         }
 
