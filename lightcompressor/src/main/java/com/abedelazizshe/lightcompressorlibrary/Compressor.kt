@@ -6,6 +6,7 @@ import android.media.*
 import android.util.Log
 import java.io.File
 import java.lang.Exception
+import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
@@ -40,23 +41,55 @@ object Compressor {
 
         //Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
-        mediaMetadataRetriever.setDataSource(source)
+        try {
+            mediaMetadataRetriever.setDataSource(source)
+        } catch (exception: IllegalArgumentException) {
+            return Result(
+                success = false,
+                failureMessage = "Source: $source seems invalid! or you don't have READ_EXTERNAL_STORAGE permission"
+            )
+        }
 
-        val height =
+        val heightData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                .toInt()
-        val width =
+
+        val widthData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                .toInt()
-        var rotation =
+
+        val rotationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
-                .toInt()
-        val bitrate =
+
+        val bitrateData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
-                .toInt()
-        val duration =
+
+        val durationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                .toLong() * 1000
+
+
+        val height: Double
+        val width: Double
+
+        // If height or width data failed to be extracted, reset to the min video size values
+        if (heightData.isNullOrEmpty() || widthData.isNullOrEmpty()) {
+            height = MIN_HEIGHT
+            width = MIN_WIDTH
+        } else {
+            height = heightData.toDouble()
+            width = widthData.toDouble()
+        }
+
+        if (rotationData.isNullOrEmpty() || bitrateData.isNullOrEmpty() || durationData.isNullOrEmpty()) {
+            // Exit execution
+            return Result(
+                success = false,
+                failureMessage = "Failed to extract video meta-data, please try again"
+            )
+        }
+
+        var rotation = rotationData.toInt()
+        val bitrate = bitrateData.toInt()
+        val duration = durationData.toLong() * 1000
+
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
@@ -68,8 +101,8 @@ object Compressor {
 
         //Handle new width and height values
         var (newWidth, newHeight) = generateWidthAndHeight(
-            width.toDouble(),
-            height.toDouble(),
+            width,
+            height,
             keepOriginalResolution
         )
 

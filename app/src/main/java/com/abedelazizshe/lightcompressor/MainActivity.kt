@@ -133,7 +133,8 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             override fun onFailure(failureMessage: String) {
-                                progress.text = "failureMessage"
+                                progress.text = failureMessage
+                                Log.wtf("failureMessage", failureMessage)
                             }
 
                             override fun onCancelled() {
