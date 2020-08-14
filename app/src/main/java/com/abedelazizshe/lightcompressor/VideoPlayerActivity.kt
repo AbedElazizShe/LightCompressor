@@ -7,10 +7,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
-import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
-import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
@@ -24,12 +22,12 @@ import java.io.File
 class VideoPlayerActivity : AppCompatActivity() {
 
     private lateinit var exoPlayer: SimpleExoPlayer
-    private lateinit var uri: String
+    private var uri = ""
 
     companion object {
         fun start(activity: Activity, uri: String) {
             val intent = Intent(activity, VideoPlayerActivity::class.java)
-            intent.putExtra("uri", uri)
+                .putExtra("uri", uri)
             activity.startActivity(intent)
         }
     }
@@ -38,32 +36,29 @@ class VideoPlayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_player)
 
-        if (intent != null) {
-            val bundle: Bundle = intent.extras!!
-            uri = bundle.getString("uri", "")
+        intent?.extras?.let {
+            uri = it.getString("uri", "")
         }
-
         initializePlayer()
-
     }
 
     private fun initializePlayer() {
 
-        val trackSelector = DefaultTrackSelector()
+        val trackSelector = DefaultTrackSelector(this)
         val loadControl = DefaultLoadControl()
         val rendererFactory = DefaultRenderersFactory(this)
 
-        exoPlayer = ExoPlayerFactory.newSimpleInstance(
-            rendererFactory, trackSelector, loadControl
-        )
+        exoPlayer = SimpleExoPlayer.Builder(this, rendererFactory)
+            .setLoadControl(loadControl)
+            .setTrackSelector(trackSelector)
+            .build()
     }
 
     private fun play(uri: Uri) {
 
         val userAgent = Util.getUserAgent(this, getString(R.string.app_name))
-        val mediaSource = ExtractorMediaSource
+        val mediaSource = ProgressiveMediaSource
             .Factory(DefaultDataSourceFactory(this, userAgent))
-            .setExtractorsFactory(DefaultExtractorsFactory())
             .createMediaSource(uri)
 
         ep_video_view.player = exoPlayer
@@ -88,5 +83,4 @@ class VideoPlayerActivity : AppCompatActivity() {
         exoPlayer.stop()
         exoPlayer.release()
     }
-
 }
