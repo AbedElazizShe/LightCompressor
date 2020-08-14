@@ -10,11 +10,15 @@ enum class VideoQuality {
 
 object VideoCompressor : CoroutineScope by MainScope() {
 
-    private var job: Job = Job()
+    private var job: Job? = null
 
     private fun doVideoCompression(
-        srcPath: String, destPath: String, quality: VideoQuality,
-        isMinBitRateEnabled: Boolean, keepOriginalResolution: Boolean, listener: CompressionListener
+        srcPath: String,
+        destPath: String,
+        quality: VideoQuality,
+        isMinBitRateEnabled: Boolean,
+        keepOriginalResolution: Boolean,
+        listener: CompressionListener
     ) = launch {
         isRunning = true
         listener.onStart()
@@ -33,9 +37,10 @@ object VideoCompressor : CoroutineScope by MainScope() {
         } else {
             listener.onFailure(result.failureMessage ?: "An error has occurred!")
         }
-
     }
 
+    @JvmStatic
+    @JvmOverloads
     fun start(
         srcPath: String,
         destPath: String,
@@ -54,8 +59,9 @@ object VideoCompressor : CoroutineScope by MainScope() {
         )
     }
 
+    @JvmStatic
     fun cancel() {
-        job.cancel()
+        job?.cancel()
         isRunning = false
     }
 
@@ -64,7 +70,6 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcPath: String, destPath: String, quality: VideoQuality, isMinBitRateEnabled: Boolean,
         keepOriginalResolution: Boolean, listener: CompressionListener
     ): Result = withContext(Dispatchers.IO) {
-
         return@withContext compressVideo(
             srcPath,
             destPath,
@@ -81,6 +86,4 @@ object VideoCompressor : CoroutineScope by MainScope() {
                 }
             })
     }
-
-
 }
