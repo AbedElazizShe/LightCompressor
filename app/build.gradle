@@ -1,17 +1,14 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
-
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         applicationId "com.abedelazizshe.lightcompressor"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -19,15 +16,23 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':lightcompressor')
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
-    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "androidx.appcompat:appcompat:${project.appCompat}"
     implementation "androidx.core:core-ktx:${project.androidX}"
     implementation "androidx.constraintlayout:constraintlayout:${project.constraintlayout}"
     implementation "com.google.android.material:material:${project.material}"
@@ -36,8 +41,6 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${project.coroutines}"
     kapt "com.github.bumptech.glide:compiler:${project.glide}"
     implementation "com.google.android.exoplayer:exoplayer:${project.exoPlayer}"
-    implementation project(':lightcompressor')
-
     testImplementation "junit:junit:${project.junit}"
     androidTestImplementation "androidx.test.ext:junit:${project.testJunit}"
     androidTestImplementation "androidx.test.espresso:espresso-core:${project.espresso}"
