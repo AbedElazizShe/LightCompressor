@@ -67,22 +67,22 @@ public class InputSurface {
             throw new RuntimeException("unable to find RGB888+recordable ES2 EGL config");
         }
 
-        int[] attrib_list = {
+        int[] attrs = {
                 EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
                 EGL14.EGL_NONE
         };
 
-        mEGLContext = EGL14.eglCreateContext(mEGLDisplay, configs[0], EGL14.EGL_NO_CONTEXT, attrib_list, 0);
+        mEGLContext = EGL14.eglCreateContext(mEGLDisplay, configs[0], EGL14.EGL_NO_CONTEXT, attrs, 0);
         checkEglError("eglCreateContext");
         if (mEGLContext == null) {
             throw new RuntimeException("null context");
         }
 
-        int[] surfaceAttribs = {
+        int[] surfaceAttrs = {
                 EGL14.EGL_NONE
         };
         mEGLSurface = EGL14.eglCreateWindowSurface(mEGLDisplay, configs[0], mSurface,
-                surfaceAttribs, 0);
+                surfaceAttrs, 0);
         checkEglError("eglCreateWindowSurface");
         if (mEGLSurface == null) {
             throw new RuntimeException("surface was null");

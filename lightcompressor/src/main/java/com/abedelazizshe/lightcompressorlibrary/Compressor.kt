@@ -5,8 +5,6 @@ package com.abedelazizshe.lightcompressorlibrary
 import android.media.*
 import android.util.Log
 import java.io.File
-import java.lang.Exception
-import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 

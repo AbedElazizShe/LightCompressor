@@ -31,9 +31,9 @@ import java.util.LinkedList;
 import java.util.Map;
 
 public class Track {
-    private long trackId = 0;
+    private long trackId;
     private ArrayList<Sample> samples = new ArrayList<>();
-    private long duration = 0;
+    private long duration;
     private String handler;
     private AbstractMediaHeaderBox headerBox = null;
     private SampleDescriptionBox sampleDescriptionBox = null;
@@ -135,7 +135,6 @@ public class Track {
         } else {
             sampleDurations.add((long)1024);
             duration = 1024;
-            isAudio = true;
             volume = 1;
             timeScale = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
             handler = "soun";
