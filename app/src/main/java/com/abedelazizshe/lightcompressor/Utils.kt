@@ -24,8 +24,6 @@ fun getMediaPath(context: Context, uri: Uri): String {
         } else ""
 
     } catch (e: Exception) {
-
-
         resolver.let {
             val filePath = (context.applicationInfo.dataDir + File.separator
                     + System.currentTimeMillis())
@@ -47,7 +45,6 @@ fun getMediaPath(context: Context, uri: Uri): String {
     } finally {
         cursor?.close()
     }
-
 }
 
 fun getFileSize(size: Long): String {
@@ -124,4 +121,3 @@ private fun copy(`in`: InputStream, out: OutputStream) {
     }
     out.flush()
 }
-

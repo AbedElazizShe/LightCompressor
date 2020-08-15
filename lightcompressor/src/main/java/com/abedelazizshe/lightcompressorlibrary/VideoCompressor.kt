@@ -107,5 +107,4 @@ object VideoCompressor : CoroutineScope by MainScope() {
                 }
             })
     }
-
 }
