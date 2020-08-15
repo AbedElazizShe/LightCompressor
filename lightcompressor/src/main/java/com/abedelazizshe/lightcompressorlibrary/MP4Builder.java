@@ -159,6 +159,9 @@ class MP4Builder {
         LinkedList<String> minorBrands = new LinkedList<>();
         minorBrands.add("isom");
         minorBrands.add("3gp4");
+        minorBrands.add("iso2");
+        minorBrands.add("avc1");
+        minorBrands.add("mp41");
         return new FileTypeBox("isom", 0, minorBrands);
     }
 
@@ -204,7 +207,7 @@ class MP4Builder {
         }
 
         @Override
-        public void parse(DataSource dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) throws IOException {
+        public void parse(DataSource dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) {
 
         }
 

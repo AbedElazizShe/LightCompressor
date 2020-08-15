@@ -3,11 +3,14 @@ package com.abedelazizshe.lightcompressor
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
+import android.provider.MediaStore
 import android.text.format.DateUtils
 import android.util.Log
 import android.view.View
@@ -19,14 +22,18 @@ import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 
 /**
  * Created by AbedElaziz Shehadeh on 26 Jan, 2020
  * elaziz.shehadeh@gmail.com
  */
-
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -73,79 +80,80 @@ class MainActivity : AppCompatActivity() {
             if (requestCode == REQUEST_SELECT_VIDEO) {
                 if (data != null && data.data != null) {
                     val uri = data.data
-                    path = getMediaPath(this, uri)
-                    val file = File(path)
 
-                    mainContents.visibility = View.VISIBLE
-                    GlideApp.with(this).load(uri).into(videoImage)
+                    uri?.let {
+                        mainContents.visibility = View.VISIBLE
+                        GlideApp.with(applicationContext).load(uri).into(videoImage)
 
-                    val downloadsPath =
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    val desFile = File(downloadsPath, "${System.currentTimeMillis()}_${file.name}")
-                    if (desFile.exists()) {
-                        desFile.delete()
-                        try {
-                            desFile.createNewFile()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
+                        GlobalScope.launch {
+                            // run in background as it can take a long time if the video is big,
+                            // this implementation is not the best way to do it,
+                            // todo(abed): improve threading
+                            val job = async { getMediaPath(applicationContext, uri) }
+                            path = job.await()
+
+                            val desFile = saveVideoFile(path)
+
+                            desFile?.let {
+                                var time = 0L
+                                VideoCompressor.start(
+                                    path,
+                                    desFile.path,
+                                    object : CompressionListener {
+                                        override fun onProgress(percent: Float) {
+                                            //Update UI
+                                            if (percent <= 100 && percent.toInt() % 5 == 0)
+                                                runOnUiThread {
+                                                    progress.text = "${percent.toLong()}%"
+                                                    progressBar.progress = percent.toInt()
+                                                }
+                                        }
+
+                                        override fun onStart() {
+                                            time = System.currentTimeMillis()
+                                            progress.visibility = View.VISIBLE
+                                            progressBar.visibility = View.VISIBLE
+                                            originalSize.text =
+                                                "Original size: ${getFileSize(File(path).length())}"
+                                            progress.text = ""
+                                            progressBar.progress = 0
+                                        }
+
+                                        override fun onSuccess() {
+                                            val newSizeValue = desFile.length()
+
+                                            newSize.text =
+                                                "Size after compression: ${getFileSize(newSizeValue)}"
+
+                                            time = System.currentTimeMillis() - time
+                                            timeTaken.text =
+                                                "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
+
+                                            path = desFile.path
+
+                                            Handler().postDelayed({
+                                                progress.visibility = View.GONE
+                                                progressBar.visibility = View.GONE
+                                            }, 50)
+                                        }
+
+                                        override fun onFailure(failureMessage: String) {
+                                            progress.text = failureMessage
+                                            Log.wtf("failureMessage", failureMessage)
+                                        }
+
+                                        override fun onCancelled() {
+                                            Log.wtf("TAG", "compression has been cancelled")
+                                            // make UI changes, cleanup, etc
+                                        }
+                                    },
+                                    VideoQuality.MEDIUM,
+                                    isMinBitRateEnabled = false,
+                                    keepOriginalResolution = false
+                                )
+                            }
                         }
-
                     }
-
-                    var time = 0L
-
-                    VideoCompressor.start(
-                        path,
-                        desFile.path,
-                        object : CompressionListener {
-                            override fun onProgress(percent: Float) {
-                                //Update UI
-                                runOnUiThread {
-                                    progress.text = "${percent.toLong()}%"
-                                    progressBar.progress = percent.toInt()
-                                }
-
-                            }
-
-                            override fun onStart() {
-                                time = System.currentTimeMillis()
-                                progress.visibility = View.VISIBLE
-                                progressBar.visibility = View.VISIBLE
-                                originalSize.text = "Original size: ${getFileSize(file.length())}"
-                            }
-
-                            override fun onSuccess() {
-                                val newSizeValue = desFile.length()
-
-                                newSize.text =
-                                    "Size after compression: ${getFileSize(newSizeValue)}"
-
-                                time = System.currentTimeMillis() - time
-                                timeTaken.text =
-                                    "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
-
-                                path = desFile.path
-
-                                Handler().postDelayed({
-                                    progress.visibility = View.GONE
-                                    progressBar.visibility = View.GONE
-                                }, 50)
-                            }
-
-                            override fun onFailure(failureMessage: String) {
-                                progress.text = failureMessage
-                                Log.wtf("failureMessage", failureMessage)
-                            }
-
-                            override fun onCancelled() {
-                                Log.wtf("TAG", "compression has been cancelled")
-                                // make UI changes, cleanup, etc
-                            }
-                        },
-                        VideoQuality.MEDIUM,
-                        isMinBitRateEnabled = false,
-                        keepOriginalResolution = false
-                    )
                 }
             }
 
@@ -159,12 +167,11 @@ class MainActivity : AppCompatActivity() {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
 
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(
                     this,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
             ) {
-            } else {
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
@@ -172,5 +179,71 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun saveVideoFile(filePath: String?): File? {
+        filePath?.let {
+            val videoFile = File(filePath)
+            val videoFileName = "${System.currentTimeMillis()}_${videoFile.name}"
+            val folderName = Environment.DIRECTORY_MOVIES
+            if (Build.VERSION.SDK_INT >= 29) {
+
+                val values = ContentValues().apply {
+
+                    put(
+                        MediaStore.Images.Media.DISPLAY_NAME,
+                        videoFileName
+                    )
+                    put(MediaStore.Images.Media.MIME_TYPE, "video/mp4")
+                    put(MediaStore.Images.Media.RELATIVE_PATH, folderName)
+                    put(MediaStore.Images.Media.IS_PENDING, 1)
+                }
+
+                val collection =
+                    MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+
+                val fileUri = applicationContext.contentResolver.insert(collection, values)
+
+                fileUri?.let {
+                    application.contentResolver.openFileDescriptor(fileUri, "w").use { descriptor ->
+                        descriptor?.let {
+                            FileOutputStream(descriptor.fileDescriptor).use { out ->
+                                FileInputStream(videoFile).use { inputStream ->
+                                    val buf = ByteArray(4096)
+                                    while (true) {
+                                        val sz = inputStream.read(buf)
+                                        if (sz <= 0) break
+                                        out.write(buf, 0, sz)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    values.clear()
+                    values.put(MediaStore.Video.Media.IS_PENDING, 0)
+                    applicationContext.contentResolver.update(fileUri, values, null, null)
+
+                    return File(getMediaPath(applicationContext, fileUri))
+                }
+            } else {
+                val downloadsPath =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val desFile = File(downloadsPath, videoFileName)
+
+                if (desFile.exists())
+                    desFile.delete()
+
+                try {
+                    desFile.createNewFile()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
+                return desFile
+            }
+        }
+        return null
     }
 }

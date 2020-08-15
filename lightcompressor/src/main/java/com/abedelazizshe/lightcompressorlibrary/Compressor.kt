@@ -1,5 +1,3 @@
-@file:Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS", "DEPRECATION")
-
 package com.abedelazizshe.lightcompressorlibrary
 
 import android.media.*
@@ -46,7 +44,7 @@ object Compressor {
         } catch (exception: IllegalArgumentException) {
             return Result(
                 success = false,
-                failureMessage = "Source: $source seems invalid! or you don't have READ_EXTERNAL_STORAGE permission"
+                failureMessage = "Source path: $source can be invalid! or you don't have READ_EXTERNAL_STORAGE permission"
             )
         }
 
@@ -261,7 +259,7 @@ object Compressor {
                             }
 
                             //Encoder
-                            val encoderStatus = encoder.dequeueOutputBuffer(bufferInfo, 0)
+                            val encoderStatus = encoder.dequeueOutputBuffer(bufferInfo, 2500)
 
                             when {
                                 encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> encoderOutputAvailable =
