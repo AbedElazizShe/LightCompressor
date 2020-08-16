@@ -7,7 +7,6 @@ import androidx.annotation.WorkerThread
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
  * elaziz.shehadeh@gmail.com
  */
-
 interface CompressionListener {
     @MainThread
     fun onStart()
