@@ -59,7 +59,7 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutin
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
 
-Then just call [doVideoCompression] and pass both source and destination file paths. The method has a callback for 5 functions;
+Then just call [VideoCompressor.start()] and pass both source and destination file paths. The method has a callback for 5 functions;
 1) OnStart - called when compression started
 2) OnSuccess - called when compression completed with no errors/exceptions
 3) OnFailure - called when an exception occurred or video bitrate and size are below the minimum required for compression.
