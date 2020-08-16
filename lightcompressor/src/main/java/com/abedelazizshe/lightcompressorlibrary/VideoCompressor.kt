@@ -10,7 +10,7 @@ enum class VideoQuality {
 
 object VideoCompressor : CoroutineScope by MainScope() {
 
-    private var job: Job = Job()
+    private var job: Job? = null
 
     /**
      * This function compresses a given [srcPath] video file and writes the compressed video file at
@@ -28,6 +28,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * @param [keepOriginalResolution] to keep the original video height and width when compressing.
      * This defaults to `false`
      */
+    @JvmStatic
+    @JvmOverloads
     fun start(
         srcPath: String,
         destPath: String,
@@ -49,8 +51,9 @@ object VideoCompressor : CoroutineScope by MainScope() {
     /**
      * Call this function to cancel video compression process which will call [CompressionListener.onCancelled]
      */
+    @JvmStatic
     fun cancel() {
-        job.cancel()
+        job?.cancel()
         isRunning = false
     }
 
@@ -90,7 +93,6 @@ object VideoCompressor : CoroutineScope by MainScope() {
         keepOriginalResolution: Boolean,
         listener: CompressionListener
     ): Result = withContext(Dispatchers.IO) {
-
         return@withContext compressVideo(
             srcPath,
             destPath,

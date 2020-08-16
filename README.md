@@ -109,7 +109,7 @@ VideoCompressor.start(
 ### Java
 
 ```java
- VideoCompressor.INSTANCE.start(path, desFile.path, new CompressionListener() {
+ VideoCompressor.start(path, desFile.path, new CompressionListener() {
        @Override
        public void onStart() {
          // Compression start
@@ -141,7 +141,6 @@ VideoCompressor.start(
          // On Cancelled
        }
  }, VideoQuality.MEDIUM, false, false);
-
 ```
 
 ## Common issues

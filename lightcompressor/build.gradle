@@ -1,10 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+
 android {
     compileSdkVersion 29
-
-
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 29
@@ -21,15 +20,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
-    implementation "androidx.core:core-ktx:${project.androidX}"
     implementation files('libs/isoparser-1.0.6.jar')
     implementation files('libs/aspectjrt-1.7.3.jar')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
+    implementation "androidx.core:core-ktx:${project.androidX}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.coroutines}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${project.coroutines}"
     testImplementation "junit:junit:${project.junit}"

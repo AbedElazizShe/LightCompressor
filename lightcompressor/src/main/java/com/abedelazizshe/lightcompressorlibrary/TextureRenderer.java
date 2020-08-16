@@ -31,7 +31,7 @@ public class TextureRenderer {
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
     private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
     private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
-    private static final float[] mTriangleVerticesData = {
+    private static final float[] M_TRIANGLE_VERTICES_DATA = {
             -1.0f, -1.0f, 0, 0.f, 0.f,
             1.0f, -1.0f, 0, 1.f, 0.f,
             -1.0f, 1.0f, 0, 0.f, 1.f,
@@ -71,8 +71,8 @@ public class TextureRenderer {
 
     TextureRenderer(int rotation) {
         rotationAngle = rotation;
-        mTriangleVertices = ByteBuffer.allocateDirect(mTriangleVerticesData.length * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        mTriangleVertices.put(mTriangleVerticesData).position(0);
+        mTriangleVertices = ByteBuffer.allocateDirect(M_TRIANGLE_VERTICES_DATA.length * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        mTriangleVertices.put(M_TRIANGLE_VERTICES_DATA).position(0);
         Matrix.setIdentityM(mSTMatrix, 0);
     }
 

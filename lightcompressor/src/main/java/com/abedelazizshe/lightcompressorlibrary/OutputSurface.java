@@ -25,8 +25,9 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
 
-//    private static final int EGL_OPENGL_ES2_BIT = 4;
+    //    private static final int EGL_OPENGL_ES2_BIT = 4;
 //    private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+    private static final int TIMEOUT_MS = 5000;
     private EGL10 mEGL;
     private EGLDisplay mEGLDisplay = null;
     private EGLContext mEGLContext = null;
@@ -152,7 +153,6 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
 //    }
 
     void awaitNewImage() {
-        final int TIMEOUT_MS = 5000;
         synchronized (mFrameSyncObject) {
             while (!mFrameAvailable) {
                 try {

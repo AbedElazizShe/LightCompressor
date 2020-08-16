@@ -170,10 +170,12 @@ class MP4Builder {
         private long contentSize = 1024 * 1024 * 1024;
         private long dataOffset = 0;
 
+        @Override
         public Container getParent() {
             return parent;
         }
 
+        @Override
         public long getOffset() {
             return dataOffset;
         }
@@ -182,6 +184,7 @@ class MP4Builder {
             dataOffset = offset;
         }
 
+        @Override
         public void setParent(Container parent) {
             this.parent = parent;
         }
@@ -194,10 +197,12 @@ class MP4Builder {
             return contentSize;
         }
 
+        @Override
         public String getType() {
             return "mdat";
         }
 
+        @Override
         public long getSize() {
             return 16 + contentSize;
         }
@@ -211,6 +216,7 @@ class MP4Builder {
 
         }
 
+        @Override
         public void getBox(WritableByteChannel writableByteChannel) throws IOException {
             ByteBuffer bb = ByteBuffer.allocate(16);
             long size = getSize();
