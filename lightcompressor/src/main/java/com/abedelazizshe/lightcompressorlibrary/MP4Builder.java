@@ -54,7 +54,7 @@ class MP4Builder {
     private FileOutputStream fos = null;
     private FileChannel fc = null;
     private long dataOffset = 0;
-    private long writedSinceLastMdat = 0;
+    private long wroteSinceLastMdat = 0;
     private boolean writeNewMdat = true;
     private HashMap<Track, long[]> track2SampleSizes = new HashMap<>();
     private ByteBuffer sizeBuffer = null;
@@ -68,7 +68,7 @@ class MP4Builder {
         FileTypeBox fileTypeBox = createFileTypeBox();
         fileTypeBox.getBox(fc);
         dataOffset += fileTypeBox.getSize();
-        writedSinceLastMdat += dataOffset;
+        wroteSinceLastMdat += dataOffset;
 
         mdat = new InterleaveChunkMdat();
 
@@ -93,19 +93,19 @@ class MP4Builder {
             mdat.getBox(fc);
             mdat.setDataOffset(dataOffset);
             dataOffset += 16;
-            writedSinceLastMdat += 16;
+            wroteSinceLastMdat += 16;
             writeNewMdat = false;
         }
 
         mdat.setContentSize(mdat.getContentSize() + bufferInfo.size);
-        writedSinceLastMdat += bufferInfo.size;
+        wroteSinceLastMdat += bufferInfo.size;
 
         boolean flush = false;
-        if (writedSinceLastMdat >= 32 * 1024) {
+        if (wroteSinceLastMdat >= 32 * 1024) {
             flushCurrentMdat();
             writeNewMdat = true;
             flush = true;
-            writedSinceLastMdat -= 32 * 1024;
+            wroteSinceLastMdat = 0;
         }
 
         currentMp4Movie.addSample(trackIndex, dataOffset, bufferInfo);
@@ -158,14 +158,13 @@ class MP4Builder {
     private FileTypeBox createFileTypeBox() {
         LinkedList<String> minorBrands = new LinkedList<>();
         minorBrands.add("isom");
-        minorBrands.add("3gp4");
         minorBrands.add("iso2");
         minorBrands.add("avc1");
         minorBrands.add("mp41");
-        return new FileTypeBox("isom", 0, minorBrands);
+        return new FileTypeBox("isom", 512, minorBrands);
     }
 
-    private class InterleaveChunkMdat implements Box {
+    private static class InterleaveChunkMdat implements Box {
         private Container parent;
         private long contentSize = 1024 * 1024 * 1024;
         private long dataOffset = 0;
@@ -213,7 +212,6 @@ class MP4Builder {
 
         @Override
         public void parse(DataSource dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) {
-
         }
 
         @Override
@@ -385,7 +383,7 @@ class MP4Builder {
         SampleToChunkBox stsc = new SampleToChunkBox();
         stsc.setEntries(new LinkedList<SampleToChunkBox.Entry>());
 
-        long lastOffset = -1;
+        long lastOffset;
         int lastChunkNumber = 1;
         int lastSampleCount = 0;
 

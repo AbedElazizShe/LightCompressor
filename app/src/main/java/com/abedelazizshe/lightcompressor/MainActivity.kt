@@ -6,10 +6,7 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
+import android.os.*
 import android.provider.MediaStore
 import android.text.format.DateUtils
 import android.util.Log
@@ -131,10 +128,12 @@ class MainActivity : AppCompatActivity() {
 
                                             path = desFile.path
 
-                                            Handler().postDelayed({
-                                                progress.visibility = View.GONE
-                                                progressBar.visibility = View.GONE
-                                            }, 50)
+                                            Looper.myLooper()?.let {
+                                                Handler(it).postDelayed({
+                                                    progress.visibility = View.GONE
+                                                    progressBar.visibility = View.GONE
+                                                }, 50)
+                                            }
                                         }
 
                                         override fun onFailure(failureMessage: String) {
@@ -148,8 +147,8 @@ class MainActivity : AppCompatActivity() {
                                         }
                                     },
                                     VideoQuality.MEDIUM,
-                                    isMinBitRateEnabled = false,
-                                    keepOriginalResolution = false
+                                    isMinBitRateEnabled = true,
+                                    keepOriginalResolution = false,
                                 )
                             }
                         }
@@ -163,7 +162,7 @@ class MainActivity : AppCompatActivity() {
     private fun setReadStoragePermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
             ) != PackageManager.PERMISSION_GRANTED
         ) {
 

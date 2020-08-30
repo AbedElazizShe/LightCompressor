@@ -19,6 +19,7 @@ object Compressor {
     private const val FRAME_RATE = 30
     private const val I_FRAME_INTERVAL = 15
     private const val MIME_TYPE = "video/avc"
+    private const val MEDIACODEC_TIMEOUT_DEFAULT = 2500L
 
     private const val INVALID_BITRATE =
         "The provided bitrate is smaller than what is needed for compression" +
@@ -32,7 +33,7 @@ object Compressor {
         quality: VideoQuality,
         isMinBitRateEnabled: Boolean,
         keepOriginalResolution: Boolean,
-        listener: CompressionProgressListener
+        listener: CompressionProgressListener,
     ): Result {
 
         //Retrieve the source's metadata to be used as input to generate new values for compression
@@ -257,7 +258,8 @@ object Compressor {
                             }
 
                             //Encoder
-                            val encoderStatus = encoder.dequeueOutputBuffer(bufferInfo, 2500)
+                            val encoderStatus =
+                                encoder.dequeueOutputBuffer(bufferInfo, MEDIACODEC_TIMEOUT_DEFAULT)
 
                             when {
                                 encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> encoderOutputAvailable =
@@ -333,7 +335,8 @@ object Compressor {
 
 
                             //Decoder
-                            val decoderStatus = decoder.dequeueOutputBuffer(bufferInfo, 0)
+                            val decoderStatus =
+                                decoder.dequeueOutputBuffer(bufferInfo, MEDIACODEC_TIMEOUT_DEFAULT)
                             when {
                                 decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> decoderOutputAvailable =
                                     false
@@ -357,7 +360,10 @@ object Compressor {
 
                                             inputSurface.swapBuffers()
                                         } catch (e: Exception) {
-                                            Log.e("Compressor", e.message)
+                                            Log.e(
+                                                "Compressor",
+                                                e.message ?: "Compression failed at swapping buffer"
+                                            )
                                         }
 
                                     }
@@ -426,7 +432,10 @@ object Compressor {
      * @param bitrate file's current bitrate
      * @return new smaller bitrate value
      */
-    private fun getBitrate(bitrate: Int, quality: VideoQuality): Int {
+    private fun getBitrate(
+        bitrate: Int,
+        quality: VideoQuality,
+    ): Int {
 
         return when (quality) {
             VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
@@ -444,7 +453,7 @@ object Compressor {
     private fun generateWidthAndHeight(
         width: Double,
         height: Double,
-        keepOriginalResolution: Boolean
+        keepOriginalResolution: Boolean,
     ): Pair<Int, Int> {
 
         if (keepOriginalResolution) {
@@ -488,7 +497,7 @@ object Compressor {
         rotation: Int,
         newWidth: Int,
         newHeight: Int,
-        cacheFile: File
+        cacheFile: File,
     ): Mp4Movie {
         val movie = Mp4Movie()
         movie.apply {
@@ -509,7 +518,7 @@ object Compressor {
         colorFormat: Int,
         newBitrate: Int,
         frameRate: Int,
-        iFrameInterval: Int
+        iFrameInterval: Int,
     ) {
         outputFormat.apply {
             setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat)
@@ -525,7 +534,10 @@ object Compressor {
      * @param isVideo to determine whether we are processing video or audio at time of call
      * @return index of the requested track
      */
-    private fun selectTrack(extractor: MediaExtractor, isVideo: Boolean): Int {
+    private fun selectTrack(
+        extractor: MediaExtractor,
+        isVideo: Boolean,
+    ): Int {
         val numTracks = extractor.trackCount
         for (i in 0 until numTracks) {
             val format = extractor.getTrackFormat(i)
@@ -541,7 +553,7 @@ object Compressor {
 
     private fun processAudio(
         extractor: MediaExtractor, mediaMuxer: MP4Builder,
-        bufferInfo: MediaCodec.BufferInfo
+        bufferInfo: MediaCodec.BufferInfo,
     ) {
         val audioIndex = selectTrack(extractor, isVideo = false)
         if (audioIndex >= 0) {

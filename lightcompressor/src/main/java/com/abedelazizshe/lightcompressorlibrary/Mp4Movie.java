@@ -64,7 +64,7 @@ public class Mp4Movie {
         return cacheFile;
     }
 
-    void addSample(int trackIndex, long offset, MediaCodec.BufferInfo bufferInfo) throws Exception {
+    void addSample(int trackIndex, long offset, MediaCodec.BufferInfo bufferInfo) {
         if (trackIndex < 0 || trackIndex >= tracks.size()) {
             return;
         }

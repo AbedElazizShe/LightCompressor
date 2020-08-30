@@ -41,23 +41,23 @@ public class TextureRenderer {
 
     private static final String VERTEX_SHADER =
             "uniform mat4 uMVPMatrix;\n" +
-            "uniform mat4 uSTMatrix;\n" +
-            "attribute vec4 aPosition;\n" +
-            "attribute vec4 aTextureCoord;\n" +
-            "varying vec2 vTextureCoord;\n" +
-            "void main() {\n" +
-            "  gl_Position = uMVPMatrix * aPosition;\n" +
-            "  vTextureCoord = (uSTMatrix * aTextureCoord).xy;\n" +
-            "}\n";
+                    "uniform mat4 uSTMatrix;\n" +
+                    "attribute vec4 aPosition;\n" +
+                    "attribute vec4 aTextureCoord;\n" +
+                    "varying vec2 vTextureCoord;\n" +
+                    "void main() {\n" +
+                    "  gl_Position = uMVPMatrix * aPosition;\n" +
+                    "  vTextureCoord = (uSTMatrix * aTextureCoord).xy;\n" +
+                    "}\n";
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
-            "precision mediump float;\n" +
-            "varying vec2 vTextureCoord;\n" +
-            "uniform samplerExternalOES sTexture;\n" +
-            "void main() {\n" +
-            "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
-            "}\n";
+                    "precision mediump float;\n" +
+                    "varying vec2 vTextureCoord;\n" +
+                    "uniform samplerExternalOES sTexture;\n" +
+                    "void main() {\n" +
+                    "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
+                    "}\n";
 
     private float[] mMVPMatrix = new float[16];
     private float[] mSTMatrix = new float[16];
@@ -107,7 +107,7 @@ public class TextureRenderer {
     }
 
     void surfaceCreated() {
-        mProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        mProgram = createProgram();
         if (mProgram == 0) {
             throw new RuntimeException("failed creating program");
         }
@@ -148,14 +148,6 @@ public class TextureRenderer {
         }
     }
 
-    public void changeFragmentShader(String fragmentShader) {
-        GLES20.glDeleteProgram(mProgram);
-        mProgram = createProgram(VERTEX_SHADER, fragmentShader);
-        if (mProgram == 0) {
-            throw new RuntimeException("failed creating program");
-        }
-    }
-
     private int loadShader(int shaderType, String source) {
         int shader = GLES20.glCreateShader(shaderType);
         checkGlError("glCreateShader type=" + shaderType);
@@ -170,12 +162,12 @@ public class TextureRenderer {
         return shader;
     }
 
-    private int createProgram(String vertexSource, String fragmentSource) {
-        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
+    private int createProgram() {
+        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, TextureRenderer.VERTEX_SHADER);
         if (vertexShader == 0) {
             return 0;
         }
-        int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
+        int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, TextureRenderer.FRAGMENT_SHADER);
         if (pixelShader == 0) {
             return 0;
         }

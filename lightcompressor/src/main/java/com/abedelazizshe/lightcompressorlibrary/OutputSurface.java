@@ -25,9 +25,7 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
 
-    //    private static final int EGL_OPENGL_ES2_BIT = 4;
-//    private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
-    private static final int TIMEOUT_MS = 5000;
+    private static final int TIMEOUT_MS = 2500;
     private EGL10 mEGL;
     private EGLDisplay mEGLDisplay = null;
     private EGLContext mEGLContext = null;
@@ -37,29 +35,12 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
     private final Object mFrameSyncObject = new Object();
     private boolean mFrameAvailable;
     private TextureRenderer mTextureRender;
-    // private ByteBuffer mPixelBuf;
-
-//    public OutputSurface(int width, int height, int rotate) {
-//        if (width <= 0 || height <= 0) {
-//            throw new IllegalArgumentException();
-//        }
-//        mWidth = width;
-//        mHeight = height;
-//        rotateRender = rotate;
-//        mPixelBuf = ByteBuffer.allocateDirect(mWidth * mHeight * 4);
-//        mPixelBuf.order(ByteOrder.LITTLE_ENDIAN);
-//        eglSetup(width, height);
-//        makeCurrent();
-//        setup();
-//    }
 
     OutputSurface() {
         setup();
     }
 
     private void setup() {
-        // private int mWidth;
-        //  private int mHeight;
         int rotateRender = 0;
         mTextureRender = new TextureRenderer(rotateRender);
         mTextureRender.surfaceCreated();
@@ -67,54 +48,6 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
         mSurfaceTexture.setOnFrameAvailableListener(this);
         mSurface = new Surface(mSurfaceTexture);
     }
-
-//    private void eglSetup(int width, int height) {
-//        mEGL = (EGL10) EGLContext.getEGL();
-//        mEGLDisplay = mEGL.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
-//
-//        if (mEGLDisplay == EGL10.EGL_NO_DISPLAY) {
-//            throw new RuntimeException("unable to get EGL10 display");
-//        }
-//
-//        if (!mEGL.eglInitialize(mEGLDisplay, null)) {
-//            mEGLDisplay = null;
-//            throw new RuntimeException("unable to initialize EGL10");
-//        }
-//
-//        int[] attribList = {
-//                EGL10.EGL_RED_SIZE, 8,
-//                EGL10.EGL_GREEN_SIZE, 8,
-//                EGL10.EGL_BLUE_SIZE, 8,
-//                EGL10.EGL_ALPHA_SIZE, 8,
-//                EGL10.EGL_SURFACE_TYPE, EGL10.EGL_PBUFFER_BIT,
-//                EGL10.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-//                EGL10.EGL_NONE
-//        };
-//        EGLConfig[] configs = new EGLConfig[1];
-//        int[] numConfigs = new int[1];
-//        if (!mEGL.eglChooseConfig(mEGLDisplay, attribList, configs, configs.length, numConfigs)) {
-//            throw new RuntimeException("unable to find RGB888+pbuffer EGL config");
-//        }
-//        int[] attrib_list = {
-//                EGL_CONTEXT_CLIENT_VERSION, 2,
-//                EGL10.EGL_NONE
-//        };
-//        mEGLContext = mEGL.eglCreateContext(mEGLDisplay, configs[0], EGL10.EGL_NO_CONTEXT, attrib_list);
-//        checkEglError("eglCreateContext");
-//        if (mEGLContext == null) {
-//            throw new RuntimeException("null context");
-//        }
-//        int[] surfaceAttribs = {
-//                EGL10.EGL_WIDTH, width,
-//                EGL10.EGL_HEIGHT, height,
-//                EGL10.EGL_NONE
-//        };
-//        mEGLSurface = mEGL.eglCreatePbufferSurface(mEGLDisplay, configs[0], surfaceAttribs);
-//        checkEglError("eglCreatePbufferSurface");
-//        if (mEGLSurface == null) {
-//            throw new RuntimeException("surface was null");
-//        }
-//    }
 
     public void release() {
         if (mEGL != null) {
@@ -134,23 +67,9 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
         mSurfaceTexture = null;
     }
 
-//    public void makeCurrent() {
-//        if (mEGL == null) {
-//            throw new RuntimeException("not configured for makeCurrent");
-//        }
-//        checkEglError("before makeCurrent");
-//        if (!mEGL.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext)) {
-//            throw new RuntimeException("eglMakeCurrent failed");
-//        }
-//    }
-
     Surface getSurface() {
         return mSurface;
     }
-
-//    public void changeFragmentShader(String fragmentShader) {
-//        mTextureRender.changeFragmentShader(fragmentShader);
-//    }
 
     void awaitNewImage() {
         synchronized (mFrameSyncObject) {
@@ -184,16 +103,4 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
             mFrameSyncObject.notifyAll();
         }
     }
-
-//    public ByteBuffer getFrame() {
-//        mPixelBuf.rewind();
-//        GLES20.glReadPixels(0, 0, mWidth, mHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPixelBuf);
-//        return mPixelBuf;
-//    }
-
-//    private void checkEglError(String msg) {
-//        if (mEGL.eglGetError() != EGL10.EGL_SUCCESS) {
-//            throw new RuntimeException("EGL error encountered (see log)");
-//        }
-//    }
 }

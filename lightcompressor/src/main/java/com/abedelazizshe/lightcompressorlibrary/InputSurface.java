@@ -25,7 +25,6 @@ import android.opengl.EGLSurface;
 import android.view.Surface;
 
 public class InputSurface {
-   // private static final boolean VERBOSE = false;
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;
     private static final int EGL_OPENGL_ES2_BIT = 4;
     private EGLDisplay mEGLDisplay;
@@ -73,7 +72,7 @@ public class InputSurface {
         };
 
         mEGLContext = EGL14.eglCreateContext(mEGLDisplay, configs[0], EGL14.EGL_NO_CONTEXT, attrs, 0);
-        checkEglError("eglCreateContext");
+        checkEglError();
         if (mEGLContext == null) {
             throw new RuntimeException("null context");
         }
@@ -83,7 +82,7 @@ public class InputSurface {
         };
         mEGLSurface = EGL14.eglCreateWindowSurface(mEGLDisplay, configs[0], mSurface,
                 surfaceAttrs, 0);
-        checkEglError("eglCreateWindowSurface");
+        checkEglError();
         if (mEGLSurface == null) {
             throw new RuntimeException("surface was null");
         }
@@ -112,18 +111,14 @@ public class InputSurface {
         return EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface);
     }
 
-//    public Surface getSurface() {
-//        return mSurface;
-//    }
-
     void setPresentationTime(long nsecs) {
         EGLExt.eglPresentationTimeANDROID(mEGLDisplay, mEGLSurface, nsecs);
     }
 
-    private void checkEglError(String msg) {
+    private void checkEglError() {
         boolean failed = false;
-        int error;
-        while ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
+
+        while (EGL14.eglGetError() != EGL14.EGL_SUCCESS) {
             failed = true;
         }
         if (failed) {
