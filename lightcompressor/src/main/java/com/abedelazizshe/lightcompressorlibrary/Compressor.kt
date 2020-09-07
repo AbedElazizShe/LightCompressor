@@ -22,7 +22,7 @@ object Compressor {
     private const val MEDIACODEC_TIMEOUT_DEFAULT = 2500L
 
     private const val INVALID_BITRATE =
-        "The provided bitrate is smaller than what is needed for compression" +
+        "The provided bitrate is smaller than what is needed for compression " +
                 "try to set isMinBitRateEnabled to false"
 
     var isRunning = true
@@ -147,7 +147,7 @@ object Compressor {
                 extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                 val inputFormat = extractor.getTrackFormat(videoIndex)
 
-                val frameRate = getFrameRate(inputFormat)
+                // val frameRate = getFrameRate(inputFormat)
                 val iFrameInterval = getIFrameIntervalRate(inputFormat)
 
                 val outputFormat: MediaFormat =
@@ -174,7 +174,7 @@ object Compressor {
                         outputFormat,
                         colorFormat,
                         newBitrate,
-                        frameRate,
+                        // frameRate,
                         iFrameInterval
                     )
 
@@ -517,13 +517,12 @@ object Compressor {
         outputFormat: MediaFormat,
         colorFormat: Int,
         newBitrate: Int,
-        frameRate: Int,
         iFrameInterval: Int,
     ) {
         outputFormat.apply {
             setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat)
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
-            setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
+            setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
         }
     }
@@ -592,10 +591,10 @@ object Compressor {
         }
     }
 
-    private fun getFrameRate(format: MediaFormat): Int {
-        return if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) format.getInteger(MediaFormat.KEY_FRAME_RATE)
-        else FRAME_RATE
-    }
+//    private fun getFrameRate(format: MediaFormat): Int {
+//        return if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) format.getInteger(MediaFormat.KEY_FRAME_RATE)
+//        else FRAME_RATE
+//    }
 
     private fun getIFrameIntervalRate(format: MediaFormat): Int {
         return if (format.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)) format.getInteger(
