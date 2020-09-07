@@ -10,7 +10,8 @@ The general idea of how the library works is that, extreme high bitrate is reduc
 I would like to mention that the set attributes for size and quality worked just great in my projects and met the expectations. It may or may not meet yours. I’d appreciate your feedback so I can enhance the compression process.
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
-**Flutter plugin is coming soon**
+
+**Flutter plugin is coming soon...**
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
