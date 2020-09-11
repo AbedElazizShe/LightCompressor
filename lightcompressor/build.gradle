@@ -3,10 +3,10 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
@@ -24,12 +24,12 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation files('libs/isoparser-1.0.6.jar')
-    implementation files('libs/aspectjrt-1.7.3.jar')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
     implementation "androidx.core:core-ktx:${project.androidX}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.coroutines}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${project.coroutines}"
+    implementation group: 'com.googlecode.mp4parser', name: 'isoparser', version: '1.0.6'
+
     testImplementation "junit:junit:${project.junit}"
     androidTestImplementation "androidx.test.ext:junit:${project.testJunit}"
     androidTestImplementation "androidx.test.espresso:espresso-core:${project.espresso}"

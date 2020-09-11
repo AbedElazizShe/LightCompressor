@@ -5,7 +5,7 @@ import com.abedelazizshe.lightcompressorlibrary.Compressor.isRunning
 import kotlinx.coroutines.*
 
 enum class VideoQuality {
-    HIGH, MEDIUM, LOW
+    VERY_HIGH, HIGH, MEDIUM, LOW
 }
 
 object VideoCompressor : CoroutineScope by MainScope() {
@@ -22,7 +22,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * [CompressionListener.onProgress], [CompressionListener.onFailure], [CompressionListener.onSuccess]
      * and if the compression was [CompressionListener.onCancelled]
      * @param [quality] to allow choosing a video quality that can be [VideoQuality.LOW],
-     * [VideoQuality.MEDIUM], and [VideoQuality.HIGH]. This defaults to [VideoQuality.MEDIUM]
+     * [VideoQuality.MEDIUM], [VideoQuality.HIGH], and [VideoQuality.VERY_HIGH].
+     * This defaults to [VideoQuality.MEDIUM]
      * @param [isMinBitRateEnabled] to determine if the checking for a minimum bitrate threshold
      * before compression is enabled or not. This default to `true`
      * @param [keepOriginalResolution] to keep the original video height and width when compressing.

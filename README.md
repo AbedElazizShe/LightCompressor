@@ -17,12 +17,13 @@ I would like to mention that the set attributes for size and quality worked just
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
 * Bitrate: 2MB
 
-You can pass one of a 3 video qualities; High, Medium, or Low and the library will handle generating the right bitrate value for the output video
+You can pass one of a 4 video qualities; VERY_HIGH, High, Medium, or Low and the library will handle generating the right bitrate value for the output video
 ```kotlin
 return when (quality) {
     VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
     VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
     VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
+    VideoQuality.VERY_HIGH -> (bitrate * 0.5).roundToInt()
 }
 
 when {
@@ -179,7 +180,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.7.2'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.7.3'
 ```
 
 ## Getting help

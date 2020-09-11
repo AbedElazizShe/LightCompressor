@@ -27,6 +27,7 @@ object Compressor {
 
     var isRunning = true
 
+    @Suppress("DEPRECATION")
     fun compressVideo(
         source: String,
         destination: String,
@@ -87,7 +88,6 @@ object Compressor {
         val bitrate = bitrateData.toInt()
         val duration = durationData.toLong() * 1000
 
-
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
         if (isMinBitRateEnabled && bitrate <= MIN_BITRATE)
@@ -147,7 +147,7 @@ object Compressor {
                 extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                 val inputFormat = extractor.getTrackFormat(videoIndex)
 
-                // val frameRate = getFrameRate(inputFormat)
+                val frameRate = getFrameRate(inputFormat)
                 val iFrameInterval = getIFrameIntervalRate(inputFormat)
 
                 val outputFormat: MediaFormat =
@@ -174,7 +174,7 @@ object Compressor {
                         outputFormat,
                         colorFormat,
                         newBitrate,
-                        // frameRate,
+                        frameRate,
                         iFrameInterval
                     )
 
@@ -189,7 +189,7 @@ object Compressor {
 
                     outputSurface = OutputSurface()
                     decoder =
-                        MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME))
+                        MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME)!!)
                     decoder.configure(inputFormat, outputSurface.surface, null, 0)
                     //Move to executing state
                     decoder.start()
@@ -441,6 +441,7 @@ object Compressor {
             VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
             VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
             VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
+            VideoQuality.VERY_HIGH -> (bitrate * 0.5).roundToInt()
         }
     }
 
@@ -517,12 +518,13 @@ object Compressor {
         outputFormat: MediaFormat,
         colorFormat: Int,
         newBitrate: Int,
+        frameRate: Int,
         iFrameInterval: Int,
     ) {
         outputFormat.apply {
             setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat)
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
-            setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE)
+            setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
         }
     }
@@ -542,9 +544,9 @@ object Compressor {
             val format = extractor.getTrackFormat(i)
             val mime = format.getString(MediaFormat.KEY_MIME)
             if (isVideo) {
-                if (mime.startsWith("video/")) return i
+                if (mime?.startsWith("video/")!!) return i
             } else {
-                if (mime.startsWith("audio/")) return i
+                if (mime?.startsWith("audio/")!!) return i
             }
         }
         return -5
@@ -591,10 +593,10 @@ object Compressor {
         }
     }
 
-//    private fun getFrameRate(format: MediaFormat): Int {
-//        return if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) format.getInteger(MediaFormat.KEY_FRAME_RATE)
-//        else FRAME_RATE
-//    }
+    private fun getFrameRate(format: MediaFormat): Int {
+        return if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) format.getInteger(MediaFormat.KEY_FRAME_RATE)
+        else FRAME_RATE
+    }
 
     private fun getIFrameIntervalRate(format: MediaFormat): Int {
         return if (format.containsKey(MediaFormat.KEY_I_FRAME_INTERVAL)) format.getInteger(
@@ -602,4 +604,60 @@ object Compressor {
         )
         else I_FRAME_INTERVAL
     }
+
+    /* Calculate and get video bitrate based on original and new sizes of the video
+    * Will keep it for reference in case it is needed later
+    fun makeVideoBitrate(
+        originalHeight: Int,
+        originalWidth: Int,
+        originalBitrate: Int,
+        height: Int,
+        width: Int,
+    ): Int {
+        val compressFactor: Float
+        val minCompressFactor: Float
+        val maxBitrate: Int
+        when {
+            min(height, width) >= 1080 -> {
+                maxBitrate = 6800000
+                compressFactor = 1f
+                minCompressFactor = 1f
+            }
+            min(height, width) >= 720 -> {
+                maxBitrate = 2621440
+                compressFactor = 1f
+                minCompressFactor = 1f
+            }
+            min(height, width) >= 480 -> {
+                maxBitrate = 1000000
+                compressFactor = 0.8f
+                minCompressFactor = 0.9f
+            }
+            else -> {
+                maxBitrate = 750000
+                compressFactor = 0.6f
+                minCompressFactor = 0.7f
+            }
+        }
+        var remeasuredBitrate =
+            (originalBitrate / min(
+                originalHeight / height.toFloat(),
+                originalWidth / width.toFloat()
+            )).toInt()
+        remeasuredBitrate *= compressFactor.toInt()
+        val minBitrate =
+            (getVideoBitrateWithFactor(minCompressFactor) / (1280f * 720f / (width * height))).toInt()
+        if (originalBitrate < minBitrate) {
+            return remeasuredBitrate
+        }
+        return if (remeasuredBitrate > maxBitrate) {
+            maxBitrate
+        } else max(remeasuredBitrate, minBitrate)
+    }
+
+    private fun getVideoBitrateWithFactor(f: Float): Int {
+        return (f * 2000f * 1000f * 1.13f).toInt()
+    }
+
+     */
 }
