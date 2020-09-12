@@ -2,6 +2,9 @@
 
 
 # LightCompressor
+
+LightCompressor can now be used in Flutter through [light_compressor](https://pub.dev/packages/light_compressor) plugin.
+
 A powerful and easy-to-use video compression library for android uses [MediaCodec](https://developer.android.com/reference/android/media/MediaCodec) API. This library generates a compressed MP4 video with a modified width, height, and bitrate (the number of bits per
 seconds that determines the video and audio files’ size and quality). It is based on Telegram for Android source code.
 
@@ -11,7 +14,6 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-**Flutter plugin is coming soon...**
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
@@ -164,6 +166,8 @@ Here’s some results from pixel 2 XL (medium quality);
 
 ## How to add to your project?
 #### Gradle
+
+Ensure Kotlin version is `1.4.x`
 
 Include this in your Project-level build.gradle file:
 ```groovy
