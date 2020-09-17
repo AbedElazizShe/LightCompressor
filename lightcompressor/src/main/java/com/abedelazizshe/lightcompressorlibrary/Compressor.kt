@@ -17,9 +17,9 @@ object Compressor {
     private const val MIN_HEIGHT = 640.0
     private const val MIN_WIDTH = 360.0
     private const val FRAME_RATE = 30
-    private const val I_FRAME_INTERVAL = 15
+    private const val I_FRAME_INTERVAL = 2
     private const val MIME_TYPE = "video/avc"
-    private const val MEDIACODEC_TIMEOUT_DEFAULT = 2500L
+    private const val MEDIACODEC_TIMEOUT_DEFAULT = 3500L
 
     private const val INVALID_BITRATE =
         "The provided bitrate is smaller than what is needed for compression " +
@@ -62,7 +62,6 @@ object Compressor {
 
         val durationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-
 
         val height: Double
         val width: Double
@@ -152,6 +151,13 @@ object Compressor {
 
                 val outputFormat: MediaFormat =
                     MediaFormat.createVideoFormat(MIME_TYPE, newWidth, newHeight)
+                //set output format
+                setOutputFileParameters(
+                    outputFormat,
+                    newBitrate,
+                    frameRate,
+                    iFrameInterval,
+                )
 
                 var decoder: MediaCodec? = null
                 val encoder: MediaCodec = MediaCodec.createEncoderByType(MIME_TYPE)
@@ -165,18 +171,6 @@ object Compressor {
                     var outputDone = false
 
                     var videoTrackIndex = -5
-
-                    // MediaCodecInfo provides information about a media codec
-                    val colorFormat = MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
-
-                    //set output format
-                    setOutputFileParameters(
-                        outputFormat,
-                        colorFormat,
-                        newBitrate,
-                        frameRate,
-                        iFrameInterval
-                    )
 
                     encoder.configure(
                         outputFormat, null, null,
@@ -200,7 +194,8 @@ object Compressor {
                             val index = extractor.sampleTrackIndex
 
                             if (index == videoIndex) {
-                                val inputBufferIndex = decoder.dequeueInputBuffer(0)
+                                val inputBufferIndex =
+                                    decoder.dequeueInputBuffer(MEDIACODEC_TIMEOUT_DEFAULT)
                                 if (inputBufferIndex >= 0) {
                                     val inputBuffer = decoder.getInputBuffer(inputBufferIndex)
                                     val chunkSize = extractor.readSampleData(inputBuffer!!, 0)
@@ -229,7 +224,8 @@ object Compressor {
                                 }
 
                             } else if (index == -1) { //end of file
-                                val inputBufferIndex = decoder.dequeueInputBuffer(0)
+                                val inputBufferIndex =
+                                    decoder.dequeueInputBuffer(MEDIACODEC_TIMEOUT_DEFAULT)
                                 if (inputBufferIndex >= 0) {
                                     decoder.queueInputBuffer(
                                         inputBufferIndex,
@@ -266,10 +262,11 @@ object Compressor {
                                     false
                                 encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                                     val newFormat = encoder.outputFormat
-                                    if (videoTrackIndex == -5) videoTrackIndex =
-                                        mediaMuxer.addTrack(newFormat, false)
+                                    if (videoTrackIndex == -5)
+                                        videoTrackIndex = mediaMuxer.addTrack(newFormat, false)
                                 }
                                 encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
+                                    // ignore this status
                                 }
                                 encoderStatus < 0 -> throw RuntimeException("unexpected result from encoder.dequeueOutputBuffer: $encoderStatus")
                                 else -> {
@@ -277,7 +274,7 @@ object Compressor {
                                         ?: throw RuntimeException("encoderOutputBuffer $encoderStatus was null")
 
                                     if (bufferInfo.size > 1) {
-                                        if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG == 0) {
+                                        if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                                             mediaMuxer.writeSampleData(
                                                 videoTrackIndex,
                                                 encodedData, bufferInfo, false
@@ -341,8 +338,10 @@ object Compressor {
                                 decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> decoderOutputAvailable =
                                     false
                                 decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
+                                    // ignore this status
                                 }
                                 decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
+                                    // ignore this status
                                 }
                                 decoderStatus < 0 -> throw RuntimeException("unexpected result from decoder.dequeueOutputBuffer: $decoderStatus")
                                 else -> {
@@ -368,7 +367,7 @@ object Compressor {
 
                                     }
 
-                                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                                    if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                                         decoderOutputAvailable = false
                                         encoder.signalEndOfInputStream()
                                     }
@@ -461,29 +460,29 @@ object Compressor {
             return Pair(width.roundToInt(), height.roundToInt())
         }
 
-        val newWidth: Double
-        val newHeight: Double
+        val newWidth: Int
+        val newHeight: Int
 
         when {
             width >= 1920 || height >= 1920 -> {
-                newWidth = (width * 0.5)
-                newHeight = (height * 0.5)
+                newWidth = (((width * 0.5) / 16).roundToInt() * 16)
+                newHeight = (((height * 0.5) / 16f).roundToInt() * 16)
             }
             width >= 1280 || height >= 1280 -> {
-                newWidth = (width * 0.75)
-                newHeight = (height * 0.75)
+                newWidth = (((width * 0.75) / 16).roundToInt() * 16)
+                newHeight = (((height * 0.75) / 16).roundToInt() * 16)
             }
             width >= 960 || height >= 960 -> {
-                newWidth = MIN_HEIGHT * 0.95
-                newHeight = MIN_WIDTH * 0.95
+                newWidth = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
+                newHeight = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
             }
             else -> {
-                newWidth = width * 0.9
-                newHeight = height * 0.9
+                newWidth = (((width * 0.9) / 16).roundToInt() * 16)
+                newHeight = (((height * 0.9) / 16).roundToInt() * 16)
             }
         }
 
-        return Pair(2 * ((newWidth / 2).roundToInt()), 2 * ((newHeight / 2).roundToInt()))
+        return Pair(newWidth, newHeight)
     }
 
     /**
@@ -516,13 +515,15 @@ object Compressor {
     @Suppress("SameParameterValue")
     private fun setOutputFileParameters(
         outputFormat: MediaFormat,
-        colorFormat: Int,
         newBitrate: Int,
         frameRate: Int,
         iFrameInterval: Int,
     ) {
         outputFormat.apply {
-            setInteger(MediaFormat.KEY_COLOR_FORMAT, colorFormat)
+            setInteger(
+                MediaFormat.KEY_COLOR_FORMAT,
+                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+            )
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
             setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
