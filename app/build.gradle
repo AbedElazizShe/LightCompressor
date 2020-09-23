@@ -31,17 +31,18 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':lightcompressor')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin}"
-    implementation "androidx.appcompat:appcompat:${project.appCompat}"
-    implementation "androidx.core:core-ktx:${project.androidX}"
-    implementation "androidx.constraintlayout:constraintlayout:${project.constraintlayout}"
-    implementation "com.google.android.material:material:${project.material}"
-    implementation "com.github.bumptech.glide:glide:${project.glide}"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${project.coroutines}"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${project.coroutines}"
-    kapt "com.github.bumptech.glide:compiler:${project.glide}"
-    implementation "com.google.android.exoplayer:exoplayer:${project.exoPlayer}"
-    testImplementation "junit:junit:${project.junit}"
-    androidTestImplementation "androidx.test.ext:junit:${project.testJunit}"
-    androidTestImplementation "androidx.test.espresso:espresso-core:${project.espresso}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    implementation "androidx.appcompat:appcompat:$appCompatVersion"
+    implementation "androidx.core:core-ktx:$coreVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$constraintlayoutVersion"
+    implementation "com.google.android.material:material:$materialVersion"
+    implementation "com.github.bumptech.glide:glide:$glideVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+    kapt "com.github.bumptech.glide:compiler:$glideVersion"
+    implementation "com.google.android.exoplayer:exoplayer:$exoPlayerVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$testJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"
 }
