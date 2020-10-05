@@ -19,9 +19,10 @@ I would like to mention that the set attributes for size and quality worked just
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
 * Bitrate: 2MB
 
-You can pass one of a 4 video qualities; VERY_HIGH, High, Medium, or Low and the library will handle generating the right bitrate value for the output video
+You can pass one of a 4 video qualities; VERY_HIGH, HIGH, MEDIUM, LOW, OR VERY_LOW and the library will handle generating the right bitrate value for the output video
 ```kotlin
 return when (quality) {
+    VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
     VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
     VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
     VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
@@ -29,22 +30,22 @@ return when (quality) {
 }
 
 when {
-    width >= 1920 || height >= 1920 -> {
-        newWidth = (width * 0.5)
-        newHeight = (height * 0.5)
-    }
-    width >= 1280 || height >= 1280 -> {
-        newWidth = (width * 0.75)
-        newHeight = (height * 0.75)
-    }
-    width >= 960 || height >= 960 -> {
-        newWidth = MIN_HEIGHT * 0.95
-        newHeight = MIN_WIDTH * 0.95
-    }
-    else -> {
-        newWidth = width * 0.9
-        newHeight = height * 0.9
-    }
+   width >= 1920 || height >= 1920 -> {
+      newWidth = (((width * 0.5) / 16).roundToInt() * 16)
+      newHeight = (((height * 0.5) / 16f).roundToInt() * 16)
+   }
+   width >= 1280 || height >= 1280 -> {
+      newWidth = (((width * 0.75) / 16).roundToInt() * 16)
+      newHeight = (((height * 0.75) / 16).roundToInt() * 16)
+   }
+   width >= 960 || height >= 960 -> {
+      newWidth = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
+      newHeight = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
+   }
+   else -> {
+      newWidth = (((width * 0.9) / 16).roundToInt() * 16)
+      newHeight = (((height * 0.9) / 16).roundToInt() * 16)
+   }
 }
 ```
 These values were tested on a huge set of videos and worked fine and fast with them. They might be changed based on the project needs and expectations.
@@ -184,7 +185,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.7.4'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.7.5'
 ```
 
 ## Getting help

@@ -159,10 +159,9 @@ class MP4Builder {
         // completed list can be found at https://www.ftyps.com/
         LinkedList<String> minorBrands = new LinkedList<>();
         minorBrands.add("mp42");
-        minorBrands.add("iso6");
-        minorBrands.add("avc1");
+        minorBrands.add("mp41");
         minorBrands.add("isom");
-        return new FileTypeBox("iso6", 1, minorBrands);
+        return new FileTypeBox("mp42", 0, minorBrands);
     }
 
     private static class InterleaveChunkMdat implements Box {

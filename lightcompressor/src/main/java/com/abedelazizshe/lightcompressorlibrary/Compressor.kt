@@ -437,6 +437,7 @@ object Compressor {
     ): Int {
 
         return when (quality) {
+            VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
             VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
             VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
             VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
@@ -527,6 +528,12 @@ object Compressor {
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
             setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT601_PAL)
+                setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
+                setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED)
+            }
         }
     }
 
