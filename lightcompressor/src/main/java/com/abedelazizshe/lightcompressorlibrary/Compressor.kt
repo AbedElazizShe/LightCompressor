@@ -1,10 +1,12 @@
 package com.abedelazizshe.lightcompressorlibrary
 
 import android.media.*
+import android.media.MediaCodecList.REGULAR_CODECS
 import android.util.Log
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
+
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -19,7 +21,7 @@ object Compressor {
     private const val FRAME_RATE = 30
     private const val I_FRAME_INTERVAL = 2
     private const val MIME_TYPE = "video/avc"
-    private const val MEDIACODEC_TIMEOUT_DEFAULT = 3500L
+    private const val MEDIACODEC_TIMEOUT_DEFAULT = 5000L
 
     private const val INVALID_BITRATE =
         "The provided bitrate is smaller than what is needed for compression " +
@@ -62,6 +64,21 @@ object Compressor {
 
         val durationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+
+        var colorRange: Int? = null
+        var colorStandard: Int? = null
+        var colorTransfer: Int? = null
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            colorRange =
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_RANGE)
+                    ?.toInt()
+            colorStandard =
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_STANDARD)
+                    ?.toInt()
+            colorTransfer =
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER)
+                    ?.toInt()
+        }
 
         val height: Double
         val width: Double
@@ -157,10 +174,17 @@ object Compressor {
                     newBitrate,
                     frameRate,
                     iFrameInterval,
+                    colorRange,
+                    colorTransfer,
+                    colorStandard,
                 )
 
                 var decoder: MediaCodec? = null
-                val encoder: MediaCodec = MediaCodec.createEncoderByType(MIME_TYPE)
+
+                val encoderName = MediaCodecList(REGULAR_CODECS).findEncoderForFormat(outputFormat)
+
+                val encoder: MediaCodec = MediaCodec.createByCodecName(encoderName)
+                Log.i("encoderName", encoder.name)
 
                 var inputSurface: InputSurface? = null
                 var outputSurface: OutputSurface? = null
@@ -182,8 +206,12 @@ object Compressor {
                     encoder.start()
 
                     outputSurface = OutputSurface()
-                    decoder =
-                        MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME)!!)
+
+                    val decoderName =
+                        MediaCodecList(REGULAR_CODECS).findDecoderForFormat(inputFormat)
+                    decoder = MediaCodec.createByCodecName(decoderName)
+                    Log.i("decoderName", decoder.name)
+
                     decoder.configure(inputFormat, outputSurface.surface, null, 0)
                     //Move to executing state
                     decoder.start()
@@ -364,9 +392,7 @@ object Compressor {
                                                 e.message ?: "Compression failed at swapping buffer"
                                             )
                                         }
-
                                     }
-
                                     if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                                         decoderOutputAvailable = false
                                         encoder.signalEndOfInputStream()
@@ -474,8 +500,13 @@ object Compressor {
                 newHeight = (((height * 0.75) / 16).roundToInt() * 16)
             }
             width >= 960 || height >= 960 -> {
-                newWidth = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
-                newHeight = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
+                if (width > height) {
+                    newWidth = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
+                    newHeight = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
+                } else {
+                    newWidth = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
+                    newHeight = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
+                }
             }
             else -> {
                 newWidth = (((width * 0.9) / 16).roundToInt() * 16)
@@ -519,6 +550,9 @@ object Compressor {
         newBitrate: Int,
         frameRate: Int,
         iFrameInterval: Int,
+        colorRange: Int?,
+        colorTransfer: Int?,
+        colorStandard: Int?,
     ) {
         outputFormat.apply {
             setInteger(
@@ -529,10 +563,20 @@ object Compressor {
             setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT601_PAL)
-                setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
-                setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+
+                setInteger(
+                    MediaFormat.KEY_COLOR_STANDARD,
+                    colorStandard ?: MediaFormat.COLOR_STANDARD_BT601_PAL
+                )
+                setInteger(
+                    MediaFormat.KEY_COLOR_TRANSFER,
+                    colorTransfer ?: MediaFormat.COLOR_TRANSFER_SDR_VIDEO
+                )
+                setInteger(
+                    MediaFormat.KEY_COLOR_RANGE,
+                    colorRange ?: MediaFormat.COLOR_RANGE_LIMITED
+                )
             }
         }
     }
@@ -561,7 +605,8 @@ object Compressor {
     }
 
     private fun processAudio(
-        extractor: MediaExtractor, mediaMuxer: MP4Builder,
+        extractor: MediaExtractor,
+        mediaMuxer: MP4Builder,
         bufferInfo: MediaCodec.BufferInfo,
     ) {
         val audioIndex = selectTrack(extractor, isVideo = false)

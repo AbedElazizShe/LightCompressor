@@ -161,6 +161,7 @@ class MP4Builder {
         minorBrands.add("mp42");
         minorBrands.add("mp41");
         minorBrands.add("isom");
+        minorBrands.add("avc1");
         return new FileTypeBox("mp42", 0, minorBrands);
     }
 
