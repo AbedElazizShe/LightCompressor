@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
             val videoFile = File(filePath)
             val videoFileName = "${System.currentTimeMillis()}_${videoFile.name}"
             val folderName = Environment.DIRECTORY_MOVIES
-            if (Build.VERSION.SDK_INT >= 29) {
+            if (Build.VERSION.SDK_INT >= 30) {
 
                 val values = ContentValues().apply {
 
@@ -205,20 +205,21 @@ class MainActivity : AppCompatActivity() {
                 val fileUri = applicationContext.contentResolver.insert(collection, values)
 
                 fileUri?.let {
-                    application.contentResolver.openFileDescriptor(fileUri, "w").use { descriptor ->
-                        descriptor?.let {
-                            FileOutputStream(descriptor.fileDescriptor).use { out ->
-                                FileInputStream(videoFile).use { inputStream ->
-                                    val buf = ByteArray(4096)
-                                    while (true) {
-                                        val sz = inputStream.read(buf)
-                                        if (sz <= 0) break
-                                        out.write(buf, 0, sz)
+                    application.contentResolver.openFileDescriptor(fileUri, "rw")
+                        .use { descriptor ->
+                            descriptor?.let {
+                                FileOutputStream(descriptor.fileDescriptor).use { out ->
+                                    FileInputStream(videoFile).use { inputStream ->
+                                        val buf = ByteArray(4096)
+                                        while (true) {
+                                            val sz = inputStream.read(buf)
+                                            if (sz <= 0) break
+                                            out.write(buf, 0, sz)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
                     values.clear()
                     values.put(MediaStore.Video.Media.IS_PENDING, 0)
