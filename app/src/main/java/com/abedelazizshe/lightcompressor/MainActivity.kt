@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.GlobalScope
@@ -80,7 +81,7 @@ class MainActivity : AppCompatActivity() {
 
                     uri?.let {
                         mainContents.visibility = View.VISIBLE
-                        GlideApp.with(applicationContext).load(uri).into(videoImage)
+                        Glide.with(applicationContext).load(uri).into(videoImage)
 
                         GlobalScope.launch {
                             // run in background as it can take a long time if the video is big,

@@ -5,11 +5,11 @@ buildscript {
         junitVersion = "4.13.1"
         espressoVersion = "3.3.0"
         coreVersion = "1.3.2"
-        constraintlayoutVersion = "2.0.2"
+        constraintlayoutVersion = "2.0.4"
         materialVersion = "1.2.1"
         glideVersion = "4.11.0"
         exoPlayerVersion = "2.11.7"
-        coroutinesVersion = "1.3.9"
+        coroutinesVersion = "1.4.0"
         testJunitVersion = "1.1.2"
         appCompatVersion = "1.2.0"
     }
