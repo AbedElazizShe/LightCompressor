@@ -8,7 +8,6 @@
 package com.abedelazizshe.lightcompressorlibrary;
 
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 
 import com.coremedia.iso.boxes.AbstractMediaHeaderBox;
@@ -32,21 +31,21 @@ import java.util.LinkedList;
 import java.util.Map;
 
 public class Track {
-    private long trackId;
-    private ArrayList<Sample> samples = new ArrayList<>();
+    private final long trackId;
+    private final ArrayList<Sample> samples = new ArrayList<>();
     private long duration;
-    private String handler;
-    private AbstractMediaHeaderBox headerBox;
-    private SampleDescriptionBox sampleDescriptionBox;
+    private final String handler;
+    private final AbstractMediaHeaderBox headerBox;
+    private final SampleDescriptionBox sampleDescriptionBox;
     private LinkedList<Integer> syncSamples = null;
-    private int timeScale;
-    private Date creationTime = new Date();
+    private final int timeScale;
+    private final Date creationTime = new Date();
     private int height;
     private int width;
     private float volume = 0;
-    private ArrayList<Long> sampleDurations = new ArrayList<>();
-    private boolean isAudio = false;
-    private static Map<Integer, Integer> samplingFrequencyIndexMap = new HashMap<>();
+    private final ArrayList<Long> sampleDurations = new ArrayList<>();
+    private final boolean isAudio = false;
+    private static final Map<Integer, Integer> samplingFrequencyIndexMap = new HashMap<>();
     private long lastPresentationTimeUs = 0;
     private boolean first = true;
 
@@ -106,68 +105,6 @@ public class Track {
                     ppsArray.add(ppsBytes);
                     avcConfigurationBox.setSequenceParameterSets(spsArray);
                     avcConfigurationBox.setPictureParameterSets(ppsArray);
-                }
-
-                if (format.containsKey("level")) {
-                    int level = format.getInteger("level");
-                    if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel1) {
-                        avcConfigurationBox.setAvcLevelIndication(1);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel2) {
-                        avcConfigurationBox.setAvcLevelIndication(2);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel11) {
-                        avcConfigurationBox.setAvcLevelIndication(11);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel12) {
-                        avcConfigurationBox.setAvcLevelIndication(12);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel13) {
-                        avcConfigurationBox.setAvcLevelIndication(13);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel21) {
-                        avcConfigurationBox.setAvcLevelIndication(21);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel22) {
-                        avcConfigurationBox.setAvcLevelIndication(22);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel3) {
-                        avcConfigurationBox.setAvcLevelIndication(3);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel31) {
-                        avcConfigurationBox.setAvcLevelIndication(31);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel32) {
-                        avcConfigurationBox.setAvcLevelIndication(32);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel4) {
-                        avcConfigurationBox.setAvcLevelIndication(4);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel41) {
-                        avcConfigurationBox.setAvcLevelIndication(41);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel42) {
-                        avcConfigurationBox.setAvcLevelIndication(42);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel5) {
-                        avcConfigurationBox.setAvcLevelIndication(5);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel51) {
-                        avcConfigurationBox.setAvcLevelIndication(51);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel52) {
-                        avcConfigurationBox.setAvcLevelIndication(52);
-                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel1b) {
-                        avcConfigurationBox.setAvcLevelIndication(0x1b);
-                    }
-                } else {
-                    avcConfigurationBox.setAvcLevelIndication(13);
-                }
-
-                if (format.containsKey("profile")) {
-                    int profile = format.getInteger("profile");
-                    if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline) {
-                        avcConfigurationBox.setAvcProfileIndication(66);
-                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileMain) {
-                        avcConfigurationBox.setAvcProfileIndication(77);
-                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileExtended) {
-                        avcConfigurationBox.setAvcProfileIndication(88);
-                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) {
-                        avcConfigurationBox.setAvcProfileIndication(100);
-                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh10) {
-                        avcConfigurationBox.setAvcProfileIndication(110);
-                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh422) {
-                        avcConfigurationBox.setAvcProfileIndication(122);
-                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh444) {
-                        avcConfigurationBox.setAvcProfileIndication(244);
-                    }
-                } else {
-                    avcConfigurationBox.setAvcProfileIndication(100);
                 }
 
                 avcConfigurationBox.setBitDepthLumaMinus8(-1);
@@ -256,6 +193,7 @@ public class Track {
         return trackId;
     }
 
+    @SuppressWarnings("deprecation")
     public void addSample(long offset, MediaCodec.BufferInfo bufferInfo) {
         boolean isSyncFrame = !isAudio && (bufferInfo.flags & MediaCodec.BUFFER_FLAG_SYNC_FRAME) != 0;
         samples.add(new Sample(offset, bufferInfo.size));

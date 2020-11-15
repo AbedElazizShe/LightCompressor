@@ -2,11 +2,11 @@ package com.abedelazizshe.lightcompressorlibrary
 
 import android.media.*
 import android.media.MediaCodecList.REGULAR_CODECS
+import android.os.Build
 import android.util.Log
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
-
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -64,21 +64,6 @@ object Compressor {
 
         val durationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-
-        var colorRange: Int? = null
-        var colorStandard: Int? = null
-        var colorTransfer: Int? = null
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            colorRange =
-                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_RANGE)
-                    ?.toInt()
-            colorStandard =
-                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_STANDARD)
-                    ?.toInt()
-            colorTransfer =
-                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_COLOR_TRANSFER)
-                    ?.toInt()
-        }
 
         val height: Double
         val width: Double
@@ -149,7 +134,7 @@ object Compressor {
                 val bufferInfo = MediaCodec.BufferInfo()
 
                 // Setup mp4 movie
-                val movie = setUpMP4Movie(rotation, newWidth, newHeight, cacheFile)
+                val movie = setUpMP4Movie(rotation, cacheFile)
 
                 // MediaMuxer outputs MP4 in this app
                 val mediaMuxer = MP4Builder().createMovie(movie)
@@ -174,9 +159,8 @@ object Compressor {
                     newBitrate,
                     frameRate,
                     iFrameInterval,
-                    colorRange,
-                    colorTransfer,
-                    colorStandard,
+                    newWidth,
+                    newHeight,
                 )
 
                 var decoder: MediaCodec? = null
@@ -520,22 +504,17 @@ object Compressor {
     /**
      * Setup movie with the height, width, and rotation values
      * @param rotation video rotation
-     * @param newWidth video width value
-     * @param newHeight video height value
      *
      * @return set movie with new values
      */
     private fun setUpMP4Movie(
         rotation: Int,
-        newWidth: Int,
-        newHeight: Int,
         cacheFile: File,
     ): Mp4Movie {
         val movie = Mp4Movie()
         movie.apply {
             this.cacheFile = cacheFile
             setRotation(rotation)
-            setSize(newWidth, newHeight)
         }
 
         return movie
@@ -550,33 +529,73 @@ object Compressor {
         newBitrate: Int,
         frameRate: Int,
         iFrameInterval: Int,
-        colorRange: Int?,
-        colorTransfer: Int?,
-        colorStandard: Int?,
+        resultHeight: Int,
+        resultWidth: Int,
     ) {
         outputFormat.apply {
             setInteger(
                 MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
             )
-            setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
+
             setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
+            setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-
-                setInteger(
-                    MediaFormat.KEY_COLOR_STANDARD,
-                    colorStandard ?: MediaFormat.COLOR_STANDARD_BT601_PAL
-                )
-                setInteger(
-                    MediaFormat.KEY_COLOR_TRANSFER,
-                    colorTransfer ?: MediaFormat.COLOR_TRANSFER_SDR_VIDEO
-                )
-                setInteger(
-                    MediaFormat.KEY_COLOR_RANGE,
-                    colorRange ?: MediaFormat.COLOR_RANGE_LIMITED
-                )
+            if (Build.VERSION.SDK_INT >= 23) {
+                var profile: Int
+                val level: Int
+                when {
+                    resultHeight.coerceAtMost(resultWidth) >= 1080 -> {
+                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh
+                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel41
+                    }
+                    resultHeight.coerceAtMost(resultWidth) >= 720 -> {
+                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh
+                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel4
+                    }
+                    resultHeight.coerceAtMost(resultWidth) >= 480 -> {
+                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel31
+                    }
+                    else -> {
+                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel3
+                    }
+                }
+                var capabilities: MediaCodecInfo.CodecCapabilities? =
+                    MediaCodecInfo.CodecCapabilities.createFromProfileLevel(
+                        MIME_TYPE,
+                        profile,
+                        level
+                    )
+                if (capabilities == null && profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) {
+                    profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+                    capabilities = MediaCodecInfo.CodecCapabilities.createFromProfileLevel(
+                        MIME_TYPE,
+                        profile,
+                        level
+                    )
+                }
+                if (capabilities?.encoderCapabilities != null) {
+                    setInteger(MediaFormat.KEY_PROFILE, profile)
+                    setInteger(MediaFormat.KEY_LEVEL, level)
+                    val maxBitrate: Int =
+                        capabilities.videoCapabilities.bitrateRange.upper
+                    if (newBitrate > maxBitrate) {
+                        setInteger(MediaFormat.KEY_BIT_RATE, maxBitrate)
+                    }
+                    val maxFrameRate: Int =
+                        capabilities.videoCapabilities.supportedFrameRates.upper
+                    if (frameRate > maxFrameRate) {
+                        setInteger(MediaFormat.KEY_FRAME_RATE, maxFrameRate)
+                    }
+                }
+            } else {
+                if (resultHeight.coerceAtMost(resultWidth) <= 480) {
+                    if (newBitrate > 921600)
+                        setInteger(MediaFormat.KEY_BIT_RATE, 921600)
+                }
             }
         }
     }

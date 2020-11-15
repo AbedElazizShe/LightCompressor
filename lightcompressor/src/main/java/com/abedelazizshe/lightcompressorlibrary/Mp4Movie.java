@@ -17,21 +17,11 @@ import java.util.ArrayList;
 
 public class Mp4Movie {
     private Matrix matrix = Matrix.ROTATE_0;
-    private ArrayList<Track> tracks = new ArrayList<>();
+    private final ArrayList<Track> tracks = new ArrayList<>();
     private File cacheFile;
-    private int width;
-    private int height;
 
     Matrix getMatrix() {
         return matrix;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
     }
 
     void setCacheFile(File file) {
@@ -50,11 +40,6 @@ public class Mp4Movie {
         }
     }
 
-    void setSize(int w, int h) {
-        width = w;
-        height = h;
-    }
-
     ArrayList<Track> getTracks() {
         return tracks;
     }
@@ -71,7 +56,7 @@ public class Mp4Movie {
         track.addSample(offset, bufferInfo);
     }
 
-    int addTrack(MediaFormat mediaFormat, boolean isAudio) throws Exception {
+    int addTrack(MediaFormat mediaFormat, boolean isAudio) {
         tracks.add(new Track(tracks.size(), mediaFormat, isAudio));
         return tracks.size() - 1;
     }
