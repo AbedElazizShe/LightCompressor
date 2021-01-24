@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
 import android.text.format.DateUtils
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val REQUEST_SELECT_VIDEO = 0
+        const val REQUEST_CAPTURE_VIDEO = 1
     }
 
     private lateinit var path: String
@@ -46,8 +48,12 @@ class MainActivity : AppCompatActivity() {
 
         setReadStoragePermission()
 
-        fab.setOnClickListener {
+        pickVideo.setOnClickListener {
             pickVideo()
+        }
+
+        recordVideo.setOnClickListener {
+            dispatchTakeVideoIntent()
         }
 
         cancel.setOnClickListener {
@@ -67,6 +73,14 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "Select video"), REQUEST_SELECT_VIDEO)
     }
 
+    private fun dispatchTakeVideoIntent() {
+        Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
+            takeVideoIntent.resolveActivity(packageManager)?.also {
+                startActivityForResult(takeVideoIntent, REQUEST_CAPTURE_VIDEO)
+            }
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 
@@ -75,89 +89,18 @@ class MainActivity : AppCompatActivity() {
         newSize.text = ""
 
         if (resultCode == Activity.RESULT_OK)
-            if (requestCode == REQUEST_SELECT_VIDEO) {
-                if (data != null && data.data != null) {
-                    val uri = data.data
-
-                    uri?.let {
-                        mainContents.visibility = View.VISIBLE
-                        Glide.with(applicationContext).load(uri).into(videoImage)
-
-                        GlobalScope.launch {
-                            // run in background as it can take a long time if the video is big,
-                            // this implementation is not the best way to do it,
-                            // todo(abed): improve threading
-                            val job = async { getMediaPath(applicationContext, uri) }
-                            path = job.await()
-
-                            val desFile = saveVideoFile(path)
-
-                            desFile?.let {
-                                var time = 0L
-                                VideoCompressor.start(
-                                    path,
-                                    desFile.path,
-                                    object : CompressionListener {
-                                        override fun onProgress(percent: Float) {
-                                            //Update UI
-                                            if (percent <= 100 && percent.toInt() % 5 == 0)
-                                                runOnUiThread {
-                                                    progress.text = "${percent.toLong()}%"
-                                                    progressBar.progress = percent.toInt()
-                                                }
-                                        }
-
-                                        override fun onStart() {
-                                            time = System.currentTimeMillis()
-                                            progress.visibility = View.VISIBLE
-                                            progressBar.visibility = View.VISIBLE
-                                            originalSize.text =
-                                                "Original size: ${getFileSize(File(path).length())}"
-                                            progress.text = ""
-                                            progressBar.progress = 0
-                                        }
-
-                                        override fun onSuccess() {
-                                            val newSizeValue = desFile.length()
-
-                                            newSize.text =
-                                                "Size after compression: ${getFileSize(newSizeValue)}"
-
-                                            time = System.currentTimeMillis() - time
-                                            timeTaken.text =
-                                                "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
-
-                                            path = desFile.path
-
-                                            Looper.myLooper()?.let {
-                                                Handler(it).postDelayed({
-                                                    progress.visibility = View.GONE
-                                                    progressBar.visibility = View.GONE
-                                                }, 50)
-                                            }
-                                        }
-
-                                        override fun onFailure(failureMessage: String) {
-                                            progress.text = failureMessage
-                                            Log.wtf("failureMessage", failureMessage)
-                                        }
-
-                                        override fun onCancelled() {
-                                            Log.wtf("TAG", "compression has been cancelled")
-                                            // make UI changes, cleanup, etc
-                                        }
-                                    },
-                                    VideoQuality.MEDIUM,
-                                    isMinBitRateEnabled = true,
-                                    keepOriginalResolution = false,
-                                )
-                            }
-                        }
-                    }
-                }
+            if (requestCode == REQUEST_SELECT_VIDEO || requestCode == REQUEST_CAPTURE_VIDEO) {
+                handleResult(data)
             }
 
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun handleResult(data: Intent?) {
+        if (data != null && data.data != null) {
+            val uri = data.data
+            processVideo(uri)
+        }
     }
 
     private fun setReadStoragePermission() {
@@ -177,6 +120,84 @@ class MainActivity : AppCompatActivity() {
                     arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     1
                 )
+            }
+        }
+    }
+
+    private fun processVideo(uri: Uri?) {
+        uri?.let {
+            mainContents.visibility = View.VISIBLE
+            Glide.with(applicationContext).load(uri).into(videoImage)
+
+            GlobalScope.launch {
+                // run in background as it can take a long time if the video is big,
+                // this implementation is not the best way to do it,
+                // todo(abed): improve threading
+                val job = async { getMediaPath(applicationContext, uri) }
+                path = job.await()
+
+                val desFile = saveVideoFile(path)
+
+                desFile?.let {
+                    var time = 0L
+                    VideoCompressor.start(
+                        path,
+                        desFile.path,
+                        object : CompressionListener {
+                            override fun onProgress(percent: Float) {
+                                //Update UI
+                                if (percent <= 100 && percent.toInt() % 5 == 0)
+                                    runOnUiThread {
+                                        progress.text = "${percent.toLong()}%"
+                                        progressBar.progress = percent.toInt()
+                                    }
+                            }
+
+                            override fun onStart() {
+                                time = System.currentTimeMillis()
+                                progress.visibility = View.VISIBLE
+                                progressBar.visibility = View.VISIBLE
+                                originalSize.text =
+                                    "Original size: ${getFileSize(File(path).length())}"
+                                progress.text = ""
+                                progressBar.progress = 0
+                            }
+
+                            override fun onSuccess() {
+                                val newSizeValue = desFile.length()
+
+                                newSize.text =
+                                    "Size after compression: ${getFileSize(newSizeValue)}"
+
+                                time = System.currentTimeMillis() - time
+                                timeTaken.text =
+                                    "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
+
+                                path = desFile.path
+
+                                Looper.myLooper()?.let {
+                                    Handler(it).postDelayed({
+                                        progress.visibility = View.GONE
+                                        progressBar.visibility = View.GONE
+                                    }, 50)
+                                }
+                            }
+
+                            override fun onFailure(failureMessage: String) {
+                                progress.text = failureMessage
+                                Log.wtf("failureMessage", failureMessage)
+                            }
+
+                            override fun onCancelled() {
+                                Log.wtf("TAG", "compression has been cancelled")
+                                // make UI changes, cleanup, etc
+                            }
+                        },
+                        VideoQuality.MEDIUM,
+                        isMinBitRateEnabled = true,
+                        keepOriginalResolution = false,
+                    )
+                }
             }
         }
     }

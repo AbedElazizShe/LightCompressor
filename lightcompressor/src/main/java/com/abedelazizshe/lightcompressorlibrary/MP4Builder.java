@@ -215,12 +215,20 @@ class MP4Builder {
         public void parse(DataSource dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) {
         }
 
+        @SuppressWarnings("StatementWithEmptyBody")
         @Override
         public void getBox(WritableByteChannel writableByteChannel) throws IOException {
             ByteBuffer bb = ByteBuffer.allocate(16);
             long size = getSize();
             if (isSmallBox(size)) {
-                IsoTypeWriter.writeUInt32(bb, size);
+
+                if (size >= 0 && size <= 1L << 32) {
+                    IsoTypeWriter.writeUInt32(bb, size);
+                } else {
+                    // TODO(ABED): Investigate when this could happen.
+                    IsoTypeWriter.writeUInt32(bb, 1);
+                }
+
             } else {
                 IsoTypeWriter.writeUInt32(bb, 1);
             }
@@ -228,7 +236,7 @@ class MP4Builder {
             if (isSmallBox(size)) {
                 bb.put(new byte[8]);
             } else {
-                IsoTypeWriter.writeUInt64(bb, size);
+                IsoTypeWriter.writeUInt64(bb, size >= 0 ? size : 1);
             }
             bb.rewind();
             writableByteChannel.write(bb);

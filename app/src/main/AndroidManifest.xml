@@ -3,8 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.abedelazizshe.lightcompressor">
 
+    <queries>
+        <intent>
+            <action android:name="android.media.action.VIDEO_CAPTURE" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +25,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning"
         tools:targetApi="q">
+
         <activity android:name=".VideoPlayerActivity" />
         <activity
             android:name=".MainActivity"

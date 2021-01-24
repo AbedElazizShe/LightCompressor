@@ -155,6 +155,12 @@ VideoCompressor.start(
 You cannot call Toast.makeText() and other functions dealing with the UI directly in onProgress() which is a worker thread. They need to be called
 from within the main thread. Have a look at the example code above for more information.
 
+## Reporting issues
+To report an issue, please specify the following:
+- Device name
+- Android version
+- If the bug/issue exists on the sample app of the library that could be downloaded at this [link](https://drive.google.com/file/d/1Cq5q_oKpqX0-Y6xw9M18UuIFJBEFiavx/view?usp=sharing).
+
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
 
@@ -185,11 +191,11 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.7.7'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.7.8'
 ```
 
 ## Getting help
 For questions, suggestions, or anything else, email elaziz.shehadeh(at)gmail.com
 
 ## Credits
-[Telegram](https://github.com/DrKLO/Telegram) for Android
+[Telegram](https://github.com/DrKLO/Telegram) for Android.

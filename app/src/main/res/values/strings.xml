@@ -2,4 +2,5 @@
     <string name="app_name">VideoCompressor</string>
     <string name="home_title">Video Compressor Sample</string>
     <string name="pick_video">Pick Video</string>
+    <string name="record_video">Record Video</string>
 </resources>
