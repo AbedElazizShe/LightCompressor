@@ -25,7 +25,6 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
 
-    private static final int TIMEOUT_MS = 2500;
     private EGL10 mEGL;
     private EGLDisplay mEGLDisplay = null;
     private EGLContext mEGLContext = null;
@@ -36,28 +35,48 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
     private boolean mFrameAvailable;
     private TextureRenderer mTextureRender;
 
-    OutputSurface() {
+    /**
+     * Creates an OutputSurface using the current EGL context. This Surface will be
+     * passed to MediaCodec.configure().
+     */
+    public OutputSurface() {
         setup();
     }
 
+    /**
+     * Creates instances of TextureRender and SurfaceTexture, and a Surface associated
+     * with the SurfaceTexture.
+     */
     private void setup() {
-        int rotateRender = 0;
-        mTextureRender = new TextureRenderer(rotateRender);
+        mTextureRender = new TextureRenderer();
         mTextureRender.surfaceCreated();
+
+        // Even if we don't access the SurfaceTexture after the constructor returns, we
+        // still need to keep a reference to it. The Surface doesn't retain a reference
+        // at the Java level, so if we don't either then the object can get GCed, which
+        // causes the native finalizer to run.
         mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
         mSurfaceTexture.setOnFrameAvailableListener(this);
         mSurface = new Surface(mSurfaceTexture);
     }
 
+    /**
+     * Discards all resources held by this class, notably the EGL context.
+     */
     public void release() {
         if (mEGL != null) {
             if (mEGL.eglGetCurrentContext().equals(mEGLContext)) {
-                mEGL.eglMakeCurrent(mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
+                // Clear the current context and surface to ensure they are discarded immediately.
+                mEGL.eglMakeCurrent(mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE,
+                        EGL10.EGL_NO_CONTEXT);
             }
             mEGL.eglDestroySurface(mEGLDisplay, mEGLSurface);
             mEGL.eglDestroyContext(mEGLDisplay, mEGLContext);
         }
+
         mSurface.release();
+
+        // null everything out so future attempts to use this object will cause an NPE
         mEGLDisplay = null;
         mEGLContext = null;
         mEGLSurface = null;
@@ -67,14 +86,26 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
         mSurfaceTexture = null;
     }
 
-    Surface getSurface() {
+    /**
+     * Returns the Surface that we draw onto.
+     */
+    public Surface getSurface() {
         return mSurface;
     }
 
-    void awaitNewImage() {
+    /**
+     * Latches the next buffer into the texture.  Must be called from the thread that created
+     * the OutputSurface object, after the onFrameAvailable callback has signaled that new
+     * data is available.
+     */
+    public void awaitNewImage() {
+        final int TIMEOUT_MS = 500;
+
         synchronized (mFrameSyncObject) {
             while (!mFrameAvailable) {
                 try {
+                    // Wait for onFrameAvailable() to signal us.  Use a timeout to avoid
+                    // stalling the test if it doesn't arrive.
                     mFrameSyncObject.wait(TIMEOUT_MS);
                     if (!mFrameAvailable) {
                         throw new RuntimeException("Surface frame wait timed out");
@@ -89,7 +120,10 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
         mSurfaceTexture.updateTexImage();
     }
 
-    void drawImage() {
+    /**
+     * Draws the data from SurfaceTexture onto the current EGL surface.
+     */
+    public void drawImage() {
         mTextureRender.drawFrame(mSurfaceTexture);
     }
 

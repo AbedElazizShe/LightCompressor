@@ -20,7 +20,7 @@ object Compressor {
     private const val FRAME_RATE = 30
     private const val I_FRAME_INTERVAL = 2
     private const val MIME_TYPE = "video/avc"
-    private const val MEDIACODEC_TIMEOUT_DEFAULT = 5000L
+    private const val MEDIACODEC_TIMEOUT_DEFAULT = 100L
 
     private const val INVALID_BITRATE =
         "The provided bitrate is smaller than what is needed for compression " +
