@@ -56,7 +56,7 @@ class MP4Builder {
     private long dataOffset = 0;
     private long wroteSinceLastMdat = 0;
     private boolean writeNewMdat = true;
-    private HashMap<Track, long[]> track2SampleSizes = new HashMap<>();
+    private final HashMap<Track, long[]> track2SampleSizes = new HashMap<>();
     private ByteBuffer sizeBuffer = null;
 
     MP4Builder createMovie(Mp4Movie mp4Movie) throws Exception {
@@ -129,7 +129,7 @@ class MP4Builder {
         return flush;
     }
 
-    int addTrack(MediaFormat mediaFormat, boolean isAudio) throws Exception {
+    int addTrack(MediaFormat mediaFormat, boolean isAudio) {
         return currentMp4Movie.addTrack(mediaFormat, isAudio);
     }
 
@@ -158,11 +158,11 @@ class MP4Builder {
     private FileTypeBox createFileTypeBox() {
         // completed list can be found at https://www.ftyps.com/
         LinkedList<String> minorBrands = new LinkedList<>();
-        minorBrands.add("mp42");
-        minorBrands.add("mp41");
         minorBrands.add("isom");
+        minorBrands.add("iso2");
         minorBrands.add("avc1");
-        return new FileTypeBox("mp42", 0, minorBrands);
+        minorBrands.add("mp41");
+        return new FileTypeBox("isom", 512, minorBrands);
     }
 
     private static class InterleaveChunkMdat implements Box {
@@ -215,7 +215,6 @@ class MP4Builder {
         public void parse(DataSource dataSource, ByteBuffer header, long contentSize, BoxParser boxParser) {
         }
 
-        @SuppressWarnings("StatementWithEmptyBody")
         @Override
         public void getBox(WritableByteChannel writableByteChannel) throws IOException {
             ByteBuffer bb = ByteBuffer.allocate(16);

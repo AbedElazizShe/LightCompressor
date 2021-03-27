@@ -107,6 +107,8 @@ public class Track {
                     avcConfigurationBox.setPictureParameterSets(ppsArray);
                 }
 
+                avcConfigurationBox.setAvcLevelIndication(13);
+                avcConfigurationBox.setAvcProfileIndication(100);
                 avcConfigurationBox.setBitDepthLumaMinus8(-1);
                 avcConfigurationBox.setBitDepthChromaMinus8(-1);
                 avcConfigurationBox.setChromaFormat(-1);
@@ -150,28 +152,12 @@ public class Track {
             slConfigDescriptor.setPredefined(2);
             descriptor.setSlConfigDescriptor(slConfigDescriptor);
 
-            String mime;
-            if (format.containsKey("mime")) {
-                mime = format.getString("mime");
-            } else {
-                mime = "audio/mp4-latm";
-            }
-
             DecoderConfigDescriptor decoderConfigDescriptor = new DecoderConfigDescriptor();
-            if ("audio/mpeg".equals(mime)) {
-                decoderConfigDescriptor.setObjectTypeIndication(0x69);
-            } else {
-                decoderConfigDescriptor.setObjectTypeIndication(0x40);
-            }
+            decoderConfigDescriptor.setObjectTypeIndication(0x40);
             decoderConfigDescriptor.setStreamType(5);
             decoderConfigDescriptor.setBufferSizeDB(1536);
-            if (format.containsKey("max-bitrate")) {
-                decoderConfigDescriptor.setMaxBitRate(format.getInteger("max-bitrate"));
-            } else {
-                decoderConfigDescriptor.setMaxBitRate(96000);
-            }
-
-            decoderConfigDescriptor.setAvgBitRate(timeScale);
+            decoderConfigDescriptor.setMaxBitRate(96000);
+            decoderConfigDescriptor.setAvgBitRate(96000);
 
             AudioSpecificConfig audioSpecificConfig = new AudioSpecificConfig();
             audioSpecificConfig.setAudioObjectType(2);

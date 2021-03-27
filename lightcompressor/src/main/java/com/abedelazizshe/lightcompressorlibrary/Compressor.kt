@@ -480,30 +480,35 @@ object Compressor {
 
         when {
             width >= 1920 || height >= 1920 -> {
-                newWidth = (((width * 0.5) / 16).roundToInt() * 16)
-                newHeight = (((height * 0.5) / 16f).roundToInt() * 16)
+                newWidth = generateWidthHeightValue(width, 0.5)
+                newHeight = generateWidthHeightValue(height, 0.5)
             }
             width >= 1280 || height >= 1280 -> {
-                newWidth = (((width * 0.75) / 16).roundToInt() * 16)
-                newHeight = (((height * 0.75) / 16).roundToInt() * 16)
+                newWidth = generateWidthHeightValue(width, 0.75)
+                newHeight = generateWidthHeightValue(height, 0.75)
             }
             width >= 960 || height >= 960 -> {
                 if (width > height) {
-                    newWidth = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
-                    newHeight = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
+                    newWidth = generateWidthHeightValue(MIN_HEIGHT, 0.95)
+                    newHeight = generateWidthHeightValue(MIN_WIDTH, 0.95)
                 } else {
-                    newWidth = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
-                    newHeight = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
+                    newWidth = generateWidthHeightValue(MIN_WIDTH, 0.95)
+                    newHeight = generateWidthHeightValue(MIN_HEIGHT, 0.95)
                 }
             }
             else -> {
-                newWidth = (((width * 0.9) / 16).roundToInt() * 16)
-                newHeight = (((height * 0.9) / 16).roundToInt() * 16)
+                newWidth = generateWidthHeightValue(width, 0.9)
+                newHeight = generateWidthHeightValue(height, 0.9)
             }
         }
 
         return Pair(newWidth, newHeight)
     }
+
+    private fun roundEven(value: Int): Int = value + 1 and 1.inv()
+
+    private fun generateWidthHeightValue(value: Double, factor: Double): Int =
+        roundEven((((value * factor) / 16).roundToInt() * 16))
 
     /**
      * Setup movie with the height, width, and rotation values
@@ -546,7 +551,7 @@ object Compressor {
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
 
-            if (Build.VERSION.SDK_INT >= 23) {
+            if (Build.VERSION.SDK_INT > 23) {
                 var profile: Int
                 val level: Int
                 when {

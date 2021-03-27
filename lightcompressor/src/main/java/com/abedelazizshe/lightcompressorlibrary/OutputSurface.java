@@ -18,17 +18,8 @@ package com.abedelazizshe.lightcompressorlibrary;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-
 public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
 
-    private EGL10 mEGL;
-    private EGLDisplay mEGLDisplay = null;
-    private EGLContext mEGLContext = null;
-    private EGLSurface mEGLSurface = null;
     private SurfaceTexture mSurfaceTexture;
     private Surface mSurface;
     private final Object mFrameSyncObject = new Object();
@@ -64,23 +55,8 @@ public class OutputSurface implements SurfaceTexture.OnFrameAvailableListener {
      * Discards all resources held by this class, notably the EGL context.
      */
     public void release() {
-        if (mEGL != null) {
-            if (mEGL.eglGetCurrentContext().equals(mEGLContext)) {
-                // Clear the current context and surface to ensure they are discarded immediately.
-                mEGL.eglMakeCurrent(mEGLDisplay, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE,
-                        EGL10.EGL_NO_CONTEXT);
-            }
-            mEGL.eglDestroySurface(mEGLDisplay, mEGLSurface);
-            mEGL.eglDestroyContext(mEGLDisplay, mEGLContext);
-        }
-
         mSurface.release();
 
-        // null everything out so future attempts to use this object will cause an NPE
-        mEGLDisplay = null;
-        mEGLContext = null;
-        mEGLSurface = null;
-        mEGL = null;
         mTextureRender = null;
         mSurface = null;
         mSurfaceTexture = null;
