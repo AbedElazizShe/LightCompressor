@@ -86,6 +86,7 @@ public class Track {
                 visualSampleEntry.setVertresolution(72);
                 visualSampleEntry.setWidth(width);
                 visualSampleEntry.setHeight(height);
+                visualSampleEntry.setCompressorname("AVC Coding");
 
                 AvcConfigurationBox avcConfigurationBox = new AvcConfigurationBox();
 

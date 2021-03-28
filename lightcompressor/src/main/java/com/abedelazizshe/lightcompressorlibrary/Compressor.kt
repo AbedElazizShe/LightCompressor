@@ -1,8 +1,10 @@
 package com.abedelazizshe.lightcompressorlibrary
 
 import android.media.*
+import android.media.MediaCodecList.REGULAR_CODECS
 import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -147,28 +149,39 @@ object Compressor {
                 extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                 val inputFormat = extractor.getTrackFormat(videoIndex)
 
-                val frameRate = getFrameRate(inputFormat)
-                val iFrameInterval = getIFrameIntervalRate(inputFormat)
-
                 val outputFormat: MediaFormat =
                     MediaFormat.createVideoFormat(MIME_TYPE, newWidth, newHeight)
                 //set output format
                 setOutputFileParameters(
+                    inputFormat,
                     outputFormat,
                     newBitrate,
-                    frameRate,
-                    iFrameInterval,
-                    newWidth,
-                    newHeight,
                 )
 
                 var decoder: MediaCodec? = null
+
+                var hasQTI = false
 
                 // This seems to cause an issue with certain phones
                 //val encoderName = MediaCodecList(REGULAR_CODECS).findEncoderForFormat(outputFormat)
                 //  val encoder: MediaCodec = MediaCodec.createByCodecName(encoderName)
                 //Log.i("encoderName", encoder.name)
-                val encoder: MediaCodec = MediaCodec.createEncoderByType(MIME_TYPE)
+                val list = MediaCodecList(REGULAR_CODECS).codecInfos
+                for (codec in list) {
+                    Log.i("CODECS: ", codec.name)
+                    if (codec.name.contains("qti.avc")) {
+                        hasQTI = true
+                        break
+                    }
+                }
+                // c2.qti.avc.encoder results in a corrupted .mp4 video that does not play in
+                // Mac and iphones
+                val encoder: MediaCodec = if (hasQTI) {
+                    MediaCodec.createByCodecName("c2.android.avc.encoder")
+                } else {
+                    MediaCodec.createEncoderByType(MIME_TYPE)
+                }
+
 
                 var inputSurface: InputSurface? = null
                 var outputSurface: OutputSurface? = null
@@ -196,9 +209,12 @@ object Compressor {
                     //     MediaCodecList(REGULAR_CODECS).findDecoderForFormat(inputFormat)
                     // decoder = MediaCodec.createByCodecName(decoderName)
                     // Log.i("decoderName", decoder.name)
-
-                    decoder =
+//
+                    decoder = if (hasQTI) {
+                        MediaCodec.createByCodecName("c2.android.avc.decoder")
+                    } else {
                         MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME)!!)
+                    }
 
                     decoder.configure(inputFormat, outputSurface.surface, null, 0)
                     //Move to executing state
@@ -365,20 +381,24 @@ object Compressor {
 
                                     decoder.releaseOutputBuffer(decoderStatus, doRender)
                                     if (doRender) {
+                                        var errorWait = false
                                         try {
                                             outputSurface.awaitNewImage()
+                                        } catch (e: Exception) {
+                                            errorWait = true
+                                            Log.e(
+                                                "Compressor",
+                                                e.message ?: "Compression failed at swapping buffer"
+                                            )
+                                        }
 
+                                        if (!errorWait) {
                                             outputSurface.drawImage()
                                             inputSurface.setPresentationTime(bufferInfo.presentationTimeUs * 1000)
 
                                             listener.onProgressChanged(bufferInfo.presentationTimeUs.toFloat() / duration.toFloat() * 100)
 
                                             inputSurface.swapBuffers()
-                                        } catch (e: Exception) {
-                                            Log.e(
-                                                "Compressor",
-                                                e.message ?: "Compression failed at swapping buffer"
-                                            )
                                         }
                                     }
                                     if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
@@ -534,13 +554,12 @@ object Compressor {
      */
     @Suppress("SameParameterValue")
     private fun setOutputFileParameters(
+        inputFormat: MediaFormat,
         outputFormat: MediaFormat,
         newBitrate: Int,
-        frameRate: Int,
-        iFrameInterval: Int,
-        resultHeight: Int,
-        resultWidth: Int,
     ) {
+        val frameRate = getFrameRate(inputFormat)
+        val iFrameInterval = getIFrameIntervalRate(inputFormat)
         outputFormat.apply {
             setInteger(
                 MediaFormat.KEY_COLOR_FORMAT,
@@ -552,58 +571,25 @@ object Compressor {
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
 
             if (Build.VERSION.SDK_INT > 23) {
-                var profile: Int
-                val level: Int
-                when {
-                    resultHeight.coerceAtMost(resultWidth) >= 1080 -> {
-                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh
-                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel41
-                    }
-                    resultHeight.coerceAtMost(resultWidth) >= 720 -> {
-                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh
-                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel4
-                    }
-                    resultHeight.coerceAtMost(resultWidth) >= 480 -> {
-                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
-                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel31
-                    }
-                    else -> {
-                        profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
-                        level = MediaCodecInfo.CodecProfileLevel.AVCLevel3
-                    }
+
+                getProfile(inputFormat)?.let {
+                    setInteger(MediaFormat.KEY_PROFILE, it)
                 }
-                var capabilities: MediaCodecInfo.CodecCapabilities? =
-                    MediaCodecInfo.CodecCapabilities.createFromProfileLevel(
-                        MIME_TYPE,
-                        profile,
-                        level
-                    )
-                if (capabilities == null && profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) {
-                    profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
-                    capabilities = MediaCodecInfo.CodecCapabilities.createFromProfileLevel(
-                        MIME_TYPE,
-                        profile,
-                        level
-                    )
+
+                getLevel(inputFormat)?.let {
+                    setInteger(MediaFormat.KEY_LEVEL, it)
                 }
-                if (capabilities?.encoderCapabilities != null) {
-                    setInteger(MediaFormat.KEY_PROFILE, profile)
-                    setInteger(MediaFormat.KEY_LEVEL, level)
-                    val maxBitrate: Int =
-                        capabilities.videoCapabilities.bitrateRange.upper
-                    if (newBitrate > maxBitrate) {
-                        setInteger(MediaFormat.KEY_BIT_RATE, maxBitrate)
-                    }
-                    val maxFrameRate: Int =
-                        capabilities.videoCapabilities.supportedFrameRates.upper
-                    if (frameRate > maxFrameRate) {
-                        setInteger(MediaFormat.KEY_FRAME_RATE, maxFrameRate)
-                    }
+
+                getColorStandard(inputFormat)?.let {
+                    setInteger(MediaFormat.KEY_COLOR_STANDARD, it)
                 }
-            } else {
-                if (resultHeight.coerceAtMost(resultWidth) <= 480) {
-                    if (newBitrate > 921600)
-                        setInteger(MediaFormat.KEY_BIT_RATE, 921600)
+
+                getColorTransfer(inputFormat)?.let {
+                    setInteger(MediaFormat.KEY_COLOR_TRANSFER, it)
+                }
+
+                getColorRange(inputFormat)?.let {
+                    setInteger(MediaFormat.KEY_COLOR_RANGE, it)
                 }
             }
         }
@@ -686,6 +672,44 @@ object Compressor {
         else I_FRAME_INTERVAL
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun getLevel(format: MediaFormat): Int? {
+        return if (format.containsKey(MediaFormat.KEY_LEVEL)) format.getInteger(
+            MediaFormat.KEY_LEVEL
+        )
+        else null
+    }
+
+    private fun getProfile(format: MediaFormat): Int? {
+        return if (format.containsKey(MediaFormat.KEY_PROFILE)) format.getInteger(
+            MediaFormat.KEY_PROFILE
+        )
+        else null
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun getColorStandard(format: MediaFormat): Int? {
+        return if (format.containsKey(MediaFormat.KEY_COLOR_STANDARD)) format.getInteger(
+            MediaFormat.KEY_COLOR_STANDARD
+        )
+        else null
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun getColorTransfer(format: MediaFormat): Int? {
+        return if (format.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) format.getInteger(
+            MediaFormat.KEY_COLOR_TRANSFER
+        )
+        else null
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun getColorRange(format: MediaFormat): Int? {
+        return if (format.containsKey(MediaFormat.KEY_COLOR_RANGE)) format.getInteger(
+            MediaFormat.KEY_COLOR_RANGE
+        )
+        else null
+    }
     /* Calculate and get video bitrate based on original and new sizes of the video
     * Will keep it for reference in case it is needed later
     fun makeVideoBitrate(

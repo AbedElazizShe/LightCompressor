@@ -191,7 +191,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.8.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.8.1'
 ```
 
 ## Getting help

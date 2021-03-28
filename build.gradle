@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        gradleVersion = '4.1.1'
+        gradleVersion = '4.1.3'
         kotlinVersion = "1.4.10"
         junitVersion = "4.13.1"
         espressoVersion = "3.3.0"
