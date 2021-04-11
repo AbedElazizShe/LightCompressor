@@ -67,7 +67,12 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutin
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
 
-Then just call [VideoCompressor.start()] and pass both source and destination file paths. The method has a callback for 5 functions;
+Then just call [VideoCompressor.start()] and pass both source and destination file paths.
+
+**NOTE**: The source video can be provided as a string path or a content uri. If both [srcPath] and
+[srcUri] are provided, [srcUri] will be ignored. Passing [srcUri] requires [context].
+
+The method has a callback for 5 functions;
 1) OnStart - called when compression started
 2) OnSuccess - called when compression completed with no errors/exceptions
 3) OnFailure - called when an exception occurred or video bitrate and size are below the minimum required for compression.
@@ -83,9 +88,11 @@ To cancel the compression job, just call [VideoCompressor.cancel()]
 
 ```kotlin
 VideoCompressor.start(
-   path,
-   desFile.path,
-   object : CompressionListener {
+   context = applicationContext, // => This is required if srcUri is provided. If not, it can be ignored or null.
+   srcUri = uri, // => Source can be provided as content uri, it requires context.
+   srcPath = path, // => This could be ignored or null if srcUri and context are provided.
+   destPath = desFile.path,
+   listener = object : CompressionListener {
        override fun onProgress(percent: Float) {
           // Update UI with progress value
           runOnUiThread {
@@ -112,12 +119,19 @@ VideoCompressor.start(
          // On Cancelled
        }
 
-   }, VideoQuality.MEDIUM, isMinBitRateEnabled = false, keepOriginalResolution = false)
+   }, quality = VideoQuality.MEDIUM,
+      isMinBitRateEnabled = false,
+      keepOriginalResolution = false)
 ```
 ### Java
 
 ```java
- VideoCompressor.start(path, desFile.path, new CompressionListener() {
+ VideoCompressor.start(
+    applicationContext, // => This is required if srcUri is provided. If not, pass null.
+    uri, // => Source can be provided as content uri, it requires context.
+    path, // => This could be null if srcUri and context are provided.
+    desFile.path,
+    new CompressionListener() {
        @Override
        public void onStart() {
          // Compression start
@@ -159,7 +173,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app of the library that could be downloaded at this [link](https://drive.google.com/file/d/1zScSJFsmGGbUK0QzbnR1yX1xMZEHs9Nc/view?usp=sharing).
+- If the bug/issue exists on the sample app of the library that could be downloaded at this [link](https://drive.google.com/file/d/1PTmg4E4ZPK1RLLK1e-qPkVG7jpeTgbq4/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -191,7 +205,7 @@ allprojects {
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.8.1'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.0'
 ```
 
 ## Getting help

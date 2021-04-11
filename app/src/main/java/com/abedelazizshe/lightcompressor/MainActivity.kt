@@ -141,9 +141,11 @@ class MainActivity : AppCompatActivity() {
                 desFile?.let {
                     var time = 0L
                     VideoCompressor.start(
-                        path,
-                        desFile.path,
-                        object : CompressionListener {
+                        context = applicationContext,
+                        srcUri = uri,
+                        // srcPath = path,
+                        destPath = desFile.path,
+                        listener = object : CompressionListener {
                             override fun onProgress(percent: Float) {
                                 //Update UI
                                 if (percent <= 100 && percent.toInt() % 5 == 0)
@@ -193,7 +195,7 @@ class MainActivity : AppCompatActivity() {
                                 // make UI changes, cleanup, etc
                             }
                         },
-                        VideoQuality.MEDIUM,
+                        quality = VideoQuality.MEDIUM,
                         isMinBitRateEnabled = true,
                         keepOriginalResolution = false,
                     )

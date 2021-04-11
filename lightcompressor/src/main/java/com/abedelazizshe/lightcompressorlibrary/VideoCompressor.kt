@@ -1,5 +1,7 @@
 package com.abedelazizshe.lightcompressorlibrary
 
+import android.content.Context
+import android.net.Uri
 import com.abedelazizshe.lightcompressorlibrary.Compressor.compressVideo
 import com.abedelazizshe.lightcompressorlibrary.Compressor.isRunning
 import kotlinx.coroutines.*
@@ -13,9 +15,16 @@ object VideoCompressor : CoroutineScope by MainScope() {
     private var job: Job? = null
 
     /**
-     * This function compresses a given [srcPath] video file and writes the compressed video file at
-     * [destPath]
+     * This function compresses a given [srcPath] or [srcUri] video file and writes the compressed
+     * video file at [destPath]
      *
+     * The source video can be provided as a string path or a content uri. If both [srcPath] and
+     * [srcUri] are provided, [srcUri] will be ignored.
+     *
+     * Passing [srcUri] requires [context].
+     *
+     * @param [context] the application context.
+     * @param [srcUri] the content Uri of the video file.
      * @param [srcPath] the path of the provided video file to be compressed
      * @param [destPath] the path where the output compressed video file should be saved
      * @param [listener] a compression listener that listens to compression [CompressionListener.onStart],
@@ -32,7 +41,9 @@ object VideoCompressor : CoroutineScope by MainScope() {
     @JvmStatic
     @JvmOverloads
     fun start(
-        srcPath: String,
+        context: Context? = null,
+        srcUri: Uri? = null,
+        srcPath: String? = null,
         destPath: String,
         listener: CompressionListener,
         quality: VideoQuality = VideoQuality.MEDIUM,
@@ -40,6 +51,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
         keepOriginalResolution: Boolean = false,
     ) {
         job = doVideoCompression(
+            context,
+            srcUri,
             srcPath,
             destPath,
             quality,
@@ -59,7 +72,9 @@ object VideoCompressor : CoroutineScope by MainScope() {
     }
 
     private fun doVideoCompression(
-        srcPath: String,
+        context: Context?,
+        srcUri: Uri?,
+        srcPath: String?,
         destPath: String,
         quality: VideoQuality,
         isMinBitRateEnabled: Boolean,
@@ -69,6 +84,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
         isRunning = true
         listener.onStart()
         val result = startCompression(
+            context,
+            srcUri,
             srcPath,
             destPath,
             quality,
@@ -87,7 +104,9 @@ object VideoCompressor : CoroutineScope by MainScope() {
     }
 
     private suspend fun startCompression(
-        srcPath: String,
+        context: Context?,
+        srcUri: Uri?,
+        srcPath: String?,
         destPath: String,
         quality: VideoQuality,
         isMinBitRateEnabled: Boolean,
@@ -95,6 +114,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
         listener: CompressionListener,
     ): Result = withContext(Dispatchers.IO) {
         return@withContext compressVideo(
+            context,
+            srcUri,
             srcPath,
             destPath,
             quality,

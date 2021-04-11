@@ -1,10 +1,14 @@
 package com.abedelazizshe.lightcompressorlibrary
 
+import android.content.Context
 import android.media.*
 import android.media.MediaCodecList.REGULAR_CODECS
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -32,13 +36,39 @@ object Compressor {
 
     @Suppress("DEPRECATION")
     fun compressVideo(
-        source: String,
+        context: Context?,
+        srcUri: Uri?,
+        srcPath: String?,
         destination: String,
         quality: VideoQuality,
         isMinBitRateEnabled: Boolean,
         keepOriginalResolution: Boolean,
         listener: CompressionProgressListener,
     ): Result {
+
+        if (context == null && srcPath == null && srcUri == null) {
+            return Result(
+                success = false,
+                failureMessage = "You need to provide either a srcUri or a srcPath"
+            )
+        }
+
+        if (context == null && srcPath == null && srcUri != null) {
+            return Result(
+                success = false,
+                failureMessage = "You need to provide the application context"
+            )
+        }
+
+        var source = srcPath
+
+        if (context != null && srcUri != null && source == null) {
+
+            runBlocking {
+                val job = async { VideoHelper.getMediaPath(context, srcUri) }
+                source = job.await()
+            }
+        }
 
         //Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
