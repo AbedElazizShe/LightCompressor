@@ -76,10 +76,14 @@ android:maxSdkVersion="28"/>
 
 And import the following dependencies to use kotlin coroutines
 
+### Groovy
+
 ```groovy
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutines}"
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
+
+### DSL
 
 ```dsl
 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
@@ -225,6 +229,9 @@ Here’s some results from pixel 2 XL (medium quality);
 Ensure Kotlin version is `1.5.10`
 
 Include this in your Project-level build.gradle file:
+
+### Groovy
+
 ```groovy
 allprojects {
     repositories {
@@ -235,6 +242,8 @@ allprojects {
     }
 }
 ```
+
+### DSL
 
 ```dsl
 allprojects {
@@ -249,9 +258,13 @@ allprojects {
 
 Include this in your Module-level build.gradle file:
 
+### Groovy
+
 ```groovy
 implementation 'com.github.AbedElazizShe:LightCompressor:0.9.1'
 ```
+
+### DSL
 
 ```dsl
 implementation("com.github.AbedElazizShe:LightCompressor:0.9.1")
