@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
+import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
@@ -195,9 +196,11 @@ class MainActivity : AppCompatActivity() {
                                 // make UI changes, cleanup, etc
                             }
                         },
-                        quality = VideoQuality.MEDIUM,
-                        isMinBitRateEnabled = true,
-                        keepOriginalResolution = false,
+                        configureWith = Configuration(
+                            quality = VideoQuality.MEDIUM,
+                            isMinBitRateEnabled = true,
+                            keepOriginalResolution = false,
+                        )
                     )
                 }
             }

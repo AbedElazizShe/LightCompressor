@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.abedelazizshe.lightcompressorlibrary.Compressor.compressVideo
 import com.abedelazizshe.lightcompressorlibrary.Compressor.isRunning
+import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import kotlinx.coroutines.*
 
 enum class VideoQuality {
@@ -30,13 +31,18 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * @param [listener] a compression listener that listens to compression [CompressionListener.onStart],
      * [CompressionListener.onProgress], [CompressionListener.onFailure], [CompressionListener.onSuccess]
      * and if the compression was [CompressionListener.onCancelled]
-     * @param [quality] to allow choosing a video quality that can be [VideoQuality.LOW],
+     * @param [configureWith] to allow add video compression configuration that could be:
+     * [Configuration.quality] to allow choosing a video quality that can be [VideoQuality.LOW],
      * [VideoQuality.MEDIUM], [VideoQuality.HIGH], and [VideoQuality.VERY_HIGH].
      * This defaults to [VideoQuality.MEDIUM]
-     * @param [isMinBitRateEnabled] to determine if the checking for a minimum bitrate threshold
+     * [Configuration.isMinBitRateEnabled] to determine if the checking for a minimum bitrate threshold
      * before compression is enabled or not. This default to `true`
-     * @param [keepOriginalResolution] to keep the original video height and width when compressing.
+     * [Configuration.keepOriginalResolution] to keep the original video height and width when compressing.
      * This defaults to `false`
+     * [Configuration.videoHeight] which is a custom height for the video. Must be specified with [Configuration.videoWidth]
+     * [Configuration.videoWidth] which is a custom width for the video. Must be specified with [Configuration.videoHeight]
+     * [Configuration.videoBitrate] which is a custom bitrate for the video. You might consider setting
+     * [Configuration.isMinBitRateEnabled] to `false` if your bitrate is less than 2000000.
      */
     @JvmStatic
     @JvmOverloads
@@ -46,18 +52,14 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcPath: String? = null,
         destPath: String,
         listener: CompressionListener,
-        quality: VideoQuality = VideoQuality.MEDIUM,
-        isMinBitRateEnabled: Boolean = true,
-        keepOriginalResolution: Boolean = false,
+        configureWith: Configuration,
     ) {
         job = doVideoCompression(
             context,
             srcUri,
             srcPath,
             destPath,
-            quality,
-            isMinBitRateEnabled,
-            keepOriginalResolution,
+            configureWith,
             listener,
         )
     }
@@ -76,9 +78,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcUri: Uri?,
         srcPath: String?,
         destPath: String,
-        quality: VideoQuality,
-        isMinBitRateEnabled: Boolean,
-        keepOriginalResolution: Boolean,
+        configuration: Configuration,
         listener: CompressionListener,
     ) = launch {
         isRunning = true
@@ -88,9 +88,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
             srcUri,
             srcPath,
             destPath,
-            quality,
-            isMinBitRateEnabled,
-            keepOriginalResolution,
+            configuration,
             listener,
         )
 
@@ -108,9 +106,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcUri: Uri?,
         srcPath: String?,
         destPath: String,
-        quality: VideoQuality,
-        isMinBitRateEnabled: Boolean,
-        keepOriginalResolution: Boolean,
+        configuration: Configuration,
         listener: CompressionListener,
     ): Result = withContext(Dispatchers.IO) {
         return@withContext compressVideo(
@@ -118,9 +114,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
             srcUri,
             srcPath,
             destPath,
-            quality,
-            isMinBitRateEnabled,
-            keepOriginalResolution,
+            configuration,
             object : CompressionProgressListener {
                 override fun onProgressChanged(percent: Float) {
                     listener.onProgress(percent)

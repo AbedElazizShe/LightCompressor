@@ -19,7 +19,7 @@ I would like to mention that the set attributes for size and quality worked just
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
 * Bitrate: 2MB
 
-You can pass one of a 4 video qualities; VERY_HIGH, HIGH, MEDIUM, LOW, OR VERY_LOW and the library will handle generating the right bitrate value for the output video
+You can pass one of a 5 video qualities; VERY_HIGH, HIGH, MEDIUM, LOW, OR VERY_LOW and the library will handle generating the right bitrate value for the output video
 ```kotlin
 return when (quality) {
     VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
@@ -48,6 +48,9 @@ when {
    }
 }
 ```
+
+You can as well pass custom videoHeight, videoWidth, and videoBitrate values if you don't want the library to auto-generate the values for you. **The compression will fail if height or width is specified without the other, so ensure you pass both values**.
+
 These values were tested on a huge set of videos and worked fine and fast with them. They might be changed based on the project needs and expectations.
 
 ## Demo
@@ -55,16 +58,32 @@ These values were tested on a huge set of videos and worked fine and fast with t
 
 Usage
 --------
-To use this library, you must add the following permissions to allow read and write to external storage.
-```java
+To use this library, you must add the following permission to allow read and write to external storage.
+
+**API < 29**
+
+```xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+android:maxSdkVersion="28"/>
 ```
+
+**API >= 29**
+
+```xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+```
+
 And import the following dependencies to use kotlin coroutines
 
 ```groovy
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutines}"
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
+```
+
+```dsl
+implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3")
 ```
 
 Then just call [VideoCompressor.start()] and pass both source and destination file paths.
@@ -119,9 +138,16 @@ VideoCompressor.start(
          // On Cancelled
        }
 
-   }, quality = VideoQuality.MEDIUM,
-      isMinBitRateEnabled = false,
-      keepOriginalResolution = false)
+   },
+   configureWith = Configuration(
+      quality = VideoQuality.MEDIUM,
+      isMinBitRateEnabled = true,
+      keepOriginalResolution = false,
+      videoHeight = 320.0 /*Double, ignore, or null*/,
+      videoWidth = 320.0 /*Double, ignore, or null*/,
+      videoBitrate = 3677198 /*Int, ignore, or null*/
+   )
+)
 ```
 ### Java
 
@@ -162,7 +188,15 @@ VideoCompressor.start(
        public void onCancelled() {
          // On Cancelled
        }
- }, VideoQuality.MEDIUM, false, false);
+    }, new Configuration(
+        VideoQuality.MEDIUM,
+        false,
+        false,
+        null /*videoHeight: double, or null*/,
+        null /*videoWidth: double, or null*/,
+        null /*videoBitrate: int, or null*/
+    )
+);
 ```
 
 ## Common issues
@@ -173,7 +207,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app of the library that could be downloaded at this [link](https://drive.google.com/file/d/1PTmg4E4ZPK1RLLK1e-qPkVG7jpeTgbq4/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1u_7uXUD8gXzbs_5Lh_PozZbHmP9lzPV7/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -188,7 +222,7 @@ Here’s some results from pixel 2 XL (medium quality);
 ## How to add to your project?
 #### Gradle
 
-Ensure Kotlin version is `1.4.x`
+Ensure Kotlin version is `1.5.10`
 
 Include this in your Project-level build.gradle file:
 ```groovy
@@ -202,10 +236,25 @@ allprojects {
 }
 ```
 
+```dsl
+allprojects {
+    repositories {
+        .
+        .
+        maven( url = "https://jitpack.io" )
+    }
+}
+
+```
+
 Include this in your Module-level build.gradle file:
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.1'
+```
+
+```dsl
+implementation("com.github.AbedElazizShe:LightCompressor:0.9.1")
 ```
 
 ## Getting help

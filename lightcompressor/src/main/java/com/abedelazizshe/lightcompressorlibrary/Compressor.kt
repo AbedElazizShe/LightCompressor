@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -40,9 +41,7 @@ object Compressor {
         srcUri: Uri?,
         srcPath: String?,
         destination: String,
-        quality: VideoQuality,
-        isMinBitRateEnabled: Boolean,
-        keepOriginalResolution: Boolean,
+        configuration: Configuration,
         listener: CompressionProgressListener,
     ): Result {
 
@@ -60,6 +59,15 @@ object Compressor {
             )
         }
 
+        if ((configuration.videoHeight != null && configuration.videoWidth == null) ||
+            (configuration.videoHeight == null && configuration.videoWidth != null)
+        ) {
+            return Result(
+                success = false,
+                failureMessage = "You must specify both height and width values"
+            )
+        }
+
         var source = srcPath
 
         if (context != null && srcUri != null && source == null) {
@@ -70,7 +78,7 @@ object Compressor {
             }
         }
 
-        //Retrieve the source's metadata to be used as input to generate new values for compression
+        // Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
             mediaMetadataRetriever.setDataSource(source)
@@ -81,11 +89,25 @@ object Compressor {
             )
         }
 
-        val heightData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+        val height: Double = if (configuration.videoHeight == null) {
+            val heightData =
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+            if (heightData.isNullOrEmpty()) {
+                MIN_HEIGHT
+            } else {
+                heightData.toDouble()
+            }
+        } else configuration.videoHeight!!
 
-        val widthData =
-            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+        val width: Double = if (configuration.videoWidth == null) {
+            val widthData =
+                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+            if (widthData.isNullOrEmpty()) {
+                MIN_WIDTH
+            } else {
+                widthData.toDouble()
+            }
+        } else configuration.videoWidth!!
 
         val rotationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
@@ -96,17 +118,6 @@ object Compressor {
         val durationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
 
-        val height: Double
-        val width: Double
-
-        // If height or width data failed to be extracted, reset to the min video size values
-        if (heightData.isNullOrEmpty() || widthData.isNullOrEmpty()) {
-            height = MIN_HEIGHT
-            width = MIN_WIDTH
-        } else {
-            height = heightData.toDouble()
-            width = widthData.toDouble()
-        }
 
         if (rotationData.isNullOrEmpty() || bitrateData.isNullOrEmpty() || durationData.isNullOrEmpty()) {
             // Exit execution
@@ -122,17 +133,23 @@ object Compressor {
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
-        if (isMinBitRateEnabled && bitrate <= MIN_BITRATE)
+        if (configuration.isMinBitRateEnabled && bitrate <= MIN_BITRATE)
             return Result(success = false, failureMessage = INVALID_BITRATE)
 
         //Handle new bitrate value
-        val newBitrate = getBitrate(bitrate, quality)
+        val newBitrate: Int =
+            if (configuration.videoBitrate == null) getBitrate(bitrate, configuration.quality)
+            else configuration.videoBitrate!!
 
         //Handle new width and height values
-        var (newWidth, newHeight) = generateWidthAndHeight(
+        var (newWidth, newHeight) = if (configuration.videoHeight != null) Pair(
+            width.toInt(),
+            height.toInt()
+        )
+        else generateWidthAndHeight(
             width,
             height,
-            keepOriginalResolution
+            configuration.keepOriginalResolution
         )
 
         //Handle rotation values and swapping height and width if needed
@@ -147,7 +164,7 @@ object Compressor {
             else -> rotation
         }
 
-        val file = File(source)
+        val file = File(source!!)
         if (!file.canRead()) return Result(
             success = false,
             failureMessage = "The source file cannot be accessed!"
@@ -239,12 +256,13 @@ object Compressor {
                     //     MediaCodecList(REGULAR_CODECS).findDecoderForFormat(inputFormat)
                     // decoder = MediaCodec.createByCodecName(decoderName)
                     // Log.i("decoderName", decoder.name)
-//
-                    decoder = if (hasQTI) {
-                        MediaCodec.createByCodecName("c2.android.avc.decoder")
-                    } else {
+
+                    //decoder = if (hasQTI) {
+                    // MediaCodec.createByCodecName("c2.android.avc.decoder")
+                    // } else {
+                    decoder =
                         MediaCodec.createDecoderByType(inputFormat.getString(MediaFormat.KEY_MIME)!!)
-                    }
+                    // }
 
                     decoder.configure(inputFormat, outputSurface.surface, null, 0)
                     //Move to executing state
