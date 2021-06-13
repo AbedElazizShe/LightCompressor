@@ -83,13 +83,6 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutin
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
 
-### DSL
-
-```dsl
-implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
-implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3")
-```
-
 Then just call [VideoCompressor.start()] and pass both source and destination file paths.
 
 **NOTE**: The source video can be provided as a string path or a content uri. If both [srcPath] and
@@ -211,7 +204,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1u_7uXUD8gXzbs_5Lh_PozZbHmP9lzPV7/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1u_7uXUD8gXzbs_5Lh_PozZbHmP9lzPV7/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -243,31 +236,12 @@ allprojects {
 }
 ```
 
-### DSL
-
-```dsl
-allprojects {
-    repositories {
-        .
-        .
-        maven( url = "https://jitpack.io" )
-    }
-}
-
-```
-
 Include this in your Module-level build.gradle file:
 
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.1'
-```
-
-### DSL
-
-```dsl
-implementation("com.github.AbedElazizShe:LightCompressor:0.9.1")
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.2'
 ```
 
 ## Getting help

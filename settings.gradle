@@ -1,0 +1,2 @@
+include ':app', ':lightcompressor'
+rootProject.name='VideoCompressor'
