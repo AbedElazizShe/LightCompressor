@@ -58,7 +58,7 @@ These values were tested on a huge set of videos and worked fine and fast with t
 
 Usage
 --------
-To use this library, you must add the following permission to allow read and write to external storage.
+To use this library, you must add the following permission to allow read and write to external storage. Refer to the sample app for a reference on how to start compression with the right setup.
 
 **API < 29**
 
@@ -204,7 +204,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1u_7uXUD8gXzbs_5Lh_PozZbHmP9lzPV7/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1NBcQ48_TR9Xg9gmjTuj09bglX2y_SJHb/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -241,7 +241,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.2'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.3'
 ```
 
 ## Getting help

@@ -125,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun processVideo(uri: Uri?) {
         uri?.let {
             mainContents.visibility = View.VISIBLE
@@ -256,7 +257,7 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
                 val downloadsPath =
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
                 val desFile = File(downloadsPath, videoFileName)
 
                 if (desFile.exists())

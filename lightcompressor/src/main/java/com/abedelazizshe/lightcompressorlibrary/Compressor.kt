@@ -8,8 +8,6 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
@@ -45,69 +43,55 @@ object Compressor {
         listener: CompressionProgressListener,
     ): Result {
 
-        if (context == null && srcPath == null && srcUri == null) {
-            return Result(
-                success = false,
-                failureMessage = "You need to provide either a srcUri or a srcPath"
-            )
-        }
-
-        if (context == null && srcPath == null && srcUri != null) {
-            return Result(
-                success = false,
-                failureMessage = "You need to provide the application context"
-            )
-        }
-
-        if ((configuration.videoHeight != null && configuration.videoWidth == null) ||
-            (configuration.videoHeight == null && configuration.videoWidth != null)
-        ) {
-            return Result(
-                success = false,
-                failureMessage = "You must specify both height and width values"
-            )
-        }
-
-        var source = srcPath
-
-        if (context != null && srcUri != null && source == null) {
-
-            runBlocking {
-                val job = async { VideoHelper.getMediaPath(context, srcUri) }
-                source = job.await()
-            }
-        }
-
         // Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
-        try {
-            mediaMetadataRetriever.setDataSource(source)
-        } catch (exception: IllegalArgumentException) {
+
+        validateInputs(context, srcUri, srcPath, configuration)?.let {
             return Result(
                 success = false,
-                failureMessage = "Source path: $source can be invalid! or you don't have READ_EXTERNAL_STORAGE permission"
+                failureMessage = it
             )
         }
 
-        val height: Double = if (configuration.videoHeight == null) {
-            val heightData =
-                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-            if (heightData.isNullOrEmpty()) {
-                MIN_HEIGHT
-            } else {
-                heightData.toDouble()
-            }
-        } else configuration.videoHeight!!
+        // MediaExtractor extracts encoded media data from the source
+        val extractor = MediaExtractor()
 
-        val width: Double = if (configuration.videoWidth == null) {
-            val widthData =
-                mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-            if (widthData.isNullOrEmpty()) {
-                MIN_WIDTH
-            } else {
-                widthData.toDouble()
+        if (context != null && srcUri != null && srcPath == null) {
+
+            try {
+                mediaMetadataRetriever.setDataSource(context, srcUri)
+            } catch (exception: IllegalArgumentException) {
+                printException(exception)
+                return Result(
+                    success = false,
+                    failureMessage = "${exception.message}"
+                )
             }
-        } else configuration.videoWidth!!
+
+            extractor.setDataSource(context, srcUri, null)
+        } else {
+            try {
+                mediaMetadataRetriever.setDataSource(srcPath)
+            } catch (exception: IllegalArgumentException) {
+                printException(exception)
+                return Result(
+                    success = false,
+                    failureMessage = "${exception.message}"
+                )
+            }
+
+            val file = File(srcPath!!)
+            if (!file.canRead()) return Result(
+                success = false,
+                failureMessage = "The source file cannot be accessed!"
+            )
+
+            extractor.setDataSource(file.toString())
+        }
+
+        val height: Double = prepareVideoHeight(mediaMetadataRetriever, configuration.videoHeight)
+
+        val width: Double = prepareVideoWidth(mediaMetadataRetriever, configuration.videoWidth)
 
         val rotationData =
             mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
@@ -164,12 +148,6 @@ object Compressor {
             else -> rotation
         }
 
-        val file = File(source!!)
-        if (!file.canRead()) return Result(
-            success = false,
-            failureMessage = "The source file cannot be accessed!"
-        )
-
         var noExceptions = true
 
         if (newWidth != 0 && newHeight != 0) {
@@ -186,9 +164,6 @@ object Compressor {
 
                 // MediaMuxer outputs MP4 in this app
                 val mediaMuxer = MP4Builder().createMovie(movie)
-                // MediaExtractor extracts encoded media data from the source
-                val extractor = MediaExtractor()
-                extractor.setDataSource(file.toString())
 
                 // Start with video track
                 val videoIndex = selectTrack(extractor, isVideo = true)
@@ -228,7 +203,6 @@ object Compressor {
                 } else {
                     MediaCodec.createEncoderByType(MIME_TYPE)
                 }
-
 
                 var inputSurface: InputSurface? = null
                 var outputSurface: OutputSurface? = null
@@ -600,7 +574,6 @@ object Compressor {
     /**
      * Set output parameters like bitrate and frame rate
      */
-    @Suppress("SameParameterValue")
     private fun setOutputFileParameters(
         inputFormat: MediaFormat,
         outputFormat: MediaFormat,
@@ -758,59 +731,116 @@ object Compressor {
         )
         else null
     }
-    /* Calculate and get video bitrate based on original and new sizes of the video
-    * Will keep it for reference in case it is needed later
-    fun makeVideoBitrate(
-        originalHeight: Int,
-        originalWidth: Int,
-        originalBitrate: Int,
-        height: Int,
-        width: Int,
-    ): Int {
-        val compressFactor: Float
-        val minCompressFactor: Float
-        val maxBitrate: Int
-        when {
-            min(height, width) >= 1080 -> {
-                maxBitrate = 6800000
-                compressFactor = 1f
-                minCompressFactor = 1f
-            }
-            min(height, width) >= 720 -> {
-                maxBitrate = 2621440
-                compressFactor = 1f
-                minCompressFactor = 1f
-            }
-            min(height, width) >= 480 -> {
-                maxBitrate = 1000000
-                compressFactor = 0.8f
-                minCompressFactor = 0.9f
-            }
-            else -> {
-                maxBitrate = 750000
-                compressFactor = 0.6f
-                minCompressFactor = 0.7f
-            }
+
+    private fun prepareVideoHeight(
+        mediaMetadataRetriever: MediaMetadataRetriever,
+        videoHeight: Double?,
+    ): Double = if (videoHeight == null) {
+        val heightData =
+            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+        if (heightData.isNullOrEmpty()) {
+            MIN_HEIGHT
+        } else {
+            heightData.toDouble()
         }
-        var remeasuredBitrate =
-            (originalBitrate / min(
-                originalHeight / height.toFloat(),
-                originalWidth / width.toFloat()
-            )).toInt()
-        remeasuredBitrate *= compressFactor.toInt()
-        val minBitrate =
-            (getVideoBitrateWithFactor(minCompressFactor) / (1280f * 720f / (width * height))).toInt()
-        if (originalBitrate < minBitrate) {
-            return remeasuredBitrate
+    } else videoHeight
+
+
+    private fun prepareVideoWidth(
+        mediaMetadataRetriever: MediaMetadataRetriever,
+        videoWidth: Double?,
+    ): Double = if (videoWidth == null) {
+        val widthData =
+            mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+        if (widthData.isNullOrEmpty()) {
+            MIN_WIDTH
+        } else {
+            widthData.toDouble()
         }
-        return if (remeasuredBitrate > maxBitrate) {
-            maxBitrate
-        } else max(remeasuredBitrate, minBitrate)
+    } else videoWidth
+
+
+    private fun validateInputs(
+        context: Context?,
+        srcUri: Uri?,
+        srcPath: String?,
+        configuration: Configuration
+    ): String? {
+
+        if (srcPath != null && srcUri != null) {
+            Log.w("Compressor", "ARE YOU SURE YOU WANT TO PASS BOTH srcPath AND srcUri?")
+        }
+
+        if (context == null && srcPath == null && srcUri == null) {
+            return "You need to provide either a srcUri or a srcPath"
+        }
+
+        if (context == null && srcPath == null && srcUri != null) {
+            return "You need to provide the application context"
+        }
+
+        if ((configuration.videoHeight != null && configuration.videoWidth == null) ||
+            (configuration.videoHeight == null && configuration.videoWidth != null)
+        ) {
+            return "You must specify both height and width values"
+        }
+
+        return null
     }
 
-    private fun getVideoBitrateWithFactor(f: Float): Int {
-        return (f * 2000f * 1000f * 1.13f).toInt()
+/* Calculate and get video bitrate based on original and new sizes of the video
+* Will keep it for reference in case it is needed later
+fun makeVideoBitrate(
+    originalHeight: Int,
+    originalWidth: Int,
+    originalBitrate: Int,
+    height: Int,
+    width: Int,
+): Int {
+    val compressFactor: Float
+    val minCompressFactor: Float
+    val maxBitrate: Int
+    when {
+        min(height, width) >= 1080 -> {
+            maxBitrate = 6800000
+            compressFactor = 1f
+            minCompressFactor = 1f
+        }
+        min(height, width) >= 720 -> {
+            maxBitrate = 2621440
+            compressFactor = 1f
+            minCompressFactor = 1f
+        }
+        min(height, width) >= 480 -> {
+            maxBitrate = 1000000
+            compressFactor = 0.8f
+            minCompressFactor = 0.9f
+        }
+        else -> {
+            maxBitrate = 750000
+            compressFactor = 0.6f
+            minCompressFactor = 0.7f
+        }
     }
+    var remeasuredBitrate =
+        (originalBitrate / min(
+            originalHeight / height.toFloat(),
+            originalWidth / width.toFloat()
+        )).toInt()
+    remeasuredBitrate *= compressFactor.toInt()
+    val minBitrate =
+        (getVideoBitrateWithFactor(minCompressFactor) / (1280f * 720f / (width * height))).toInt()
+    if (originalBitrate < minBitrate) {
+        return remeasuredBitrate
+    }
+    return if (remeasuredBitrate > maxBitrate) {
+        maxBitrate
+    } else max(remeasuredBitrate, minBitrate)
+}
 
-     */
+private fun getVideoBitrateWithFactor(f: Float): Int {
+    return (f * 2000f * 1000f * 1.13f).toInt()
+}
+
+ */
 }
