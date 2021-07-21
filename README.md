@@ -204,7 +204,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1NBcQ48_TR9Xg9gmjTuj09bglX2y_SJHb/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.4) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1-bpBrfcr7RTf-0Xwk73l5-WTOYkc6X88/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -241,7 +241,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.3'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.4'
 ```
 
 ## Getting help

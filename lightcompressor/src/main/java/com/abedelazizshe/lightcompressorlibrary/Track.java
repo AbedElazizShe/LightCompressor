@@ -8,6 +8,7 @@
 package com.abedelazizshe.lightcompressorlibrary;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 
 import com.coremedia.iso.boxes.AbstractMediaHeaderBox;
@@ -29,6 +30,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
+import static com.coremedia.iso.boxes.sampleentry.VisualSampleEntry.TYPE1;
+import static com.coremedia.iso.boxes.sampleentry.VisualSampleEntry.TYPE3;
 
 public class Track {
     private final long trackId;
@@ -78,15 +82,9 @@ public class Track {
             sampleDescriptionBox = new SampleDescriptionBox();
             String mime = format.getString(MediaFormat.KEY_MIME);
             if (mime.equals("video/avc")) {
-                VisualSampleEntry visualSampleEntry = new VisualSampleEntry("avc1");
-                visualSampleEntry.setDataReferenceIndex(1);
-                visualSampleEntry.setDepth(24);
-                visualSampleEntry.setFrameCount(1);
-                visualSampleEntry.setHorizresolution(72);
-                visualSampleEntry.setVertresolution(72);
+                VisualSampleEntry visualSampleEntry = new VisualSampleEntry(TYPE3);
                 visualSampleEntry.setWidth(width);
                 visualSampleEntry.setHeight(height);
-                visualSampleEntry.setCompressorname("AVC Coding");
 
                 AvcConfigurationBox avcConfigurationBox = new AvcConfigurationBox();
 
@@ -108,8 +106,66 @@ public class Track {
                     avcConfigurationBox.setPictureParameterSets(ppsArray);
                 }
 
-                avcConfigurationBox.setAvcLevelIndication(13);
-                avcConfigurationBox.setAvcProfileIndication(100);
+                if (format.containsKey("level")) {
+                    int level = format.getInteger("level");
+                    if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel1) {
+                        avcConfigurationBox.setAvcLevelIndication(1);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel2) {
+                        avcConfigurationBox.setAvcLevelIndication(2);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel11) {
+                        avcConfigurationBox.setAvcLevelIndication(11);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel12) {
+                        avcConfigurationBox.setAvcLevelIndication(12);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel13) {
+                        avcConfigurationBox.setAvcLevelIndication(13);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel21) {
+                        avcConfigurationBox.setAvcLevelIndication(21);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel22) {
+                        avcConfigurationBox.setAvcLevelIndication(22);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel3) {
+                        avcConfigurationBox.setAvcLevelIndication(3);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel31) {
+                        avcConfigurationBox.setAvcLevelIndication(31);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel32) {
+                        avcConfigurationBox.setAvcLevelIndication(32);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel4) {
+                        avcConfigurationBox.setAvcLevelIndication(4);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel41) {
+                        avcConfigurationBox.setAvcLevelIndication(41);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel42) {
+                        avcConfigurationBox.setAvcLevelIndication(42);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel5) {
+                        avcConfigurationBox.setAvcLevelIndication(5);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel51) {
+                        avcConfigurationBox.setAvcLevelIndication(51);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel52) {
+                        avcConfigurationBox.setAvcLevelIndication(52);
+                    } else if (level == MediaCodecInfo.CodecProfileLevel.AVCLevel1b) {
+                        avcConfigurationBox.setAvcLevelIndication(0x1b);
+                    }
+                } else {
+                    avcConfigurationBox.setAvcLevelIndication(13);
+                }
+                if (format.containsKey("profile")) {
+                    int profile = format.getInteger("profile");
+                    if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline) {
+                        avcConfigurationBox.setAvcProfileIndication(66);
+                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileMain) {
+                        avcConfigurationBox.setAvcProfileIndication(77);
+                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileExtended) {
+                        avcConfigurationBox.setAvcProfileIndication(88);
+                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh) {
+                        avcConfigurationBox.setAvcProfileIndication(100);
+                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh10) {
+                        avcConfigurationBox.setAvcProfileIndication(110);
+                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh422) {
+                        avcConfigurationBox.setAvcProfileIndication(122);
+                    } else if (profile == MediaCodecInfo.CodecProfileLevel.AVCProfileHigh444) {
+                        avcConfigurationBox.setAvcProfileIndication(244);
+                    }
+                } else {
+                    avcConfigurationBox.setAvcProfileIndication(100);
+                }
                 avcConfigurationBox.setBitDepthLumaMinus8(-1);
                 avcConfigurationBox.setBitDepthChromaMinus8(-1);
                 avcConfigurationBox.setChromaFormat(-1);
@@ -120,12 +176,7 @@ public class Track {
                 visualSampleEntry.addBox(avcConfigurationBox);
                 sampleDescriptionBox.addBox(visualSampleEntry);
             } else if (mime.equals("video/mp4v")) {
-                VisualSampleEntry visualSampleEntry = new VisualSampleEntry("mp4v");
-                visualSampleEntry.setDataReferenceIndex(1);
-                visualSampleEntry.setDepth(24);
-                visualSampleEntry.setFrameCount(1);
-                visualSampleEntry.setHorizresolution(72);
-                visualSampleEntry.setVertresolution(72);
+                VisualSampleEntry visualSampleEntry = new VisualSampleEntry(TYPE1);
                 visualSampleEntry.setWidth(width);
                 visualSampleEntry.setHeight(height);
 
@@ -139,10 +190,9 @@ public class Track {
             handler = "soun";
             headerBox = new SoundMediaHeaderBox();
             sampleDescriptionBox = new SampleDescriptionBox();
-            AudioSampleEntry audioSampleEntry = new AudioSampleEntry("mp4a");
+            AudioSampleEntry audioSampleEntry = new AudioSampleEntry(AudioSampleEntry.TYPE3);
             audioSampleEntry.setChannelCount(format.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
             audioSampleEntry.setSampleRate(format.getInteger(MediaFormat.KEY_SAMPLE_RATE));
-            audioSampleEntry.setDataReferenceIndex(1);
             audioSampleEntry.setSampleSize(16);
 
             ESDescriptorBox esds = new ESDescriptorBox();
@@ -157,8 +207,12 @@ public class Track {
             decoderConfigDescriptor.setObjectTypeIndication(0x40);
             decoderConfigDescriptor.setStreamType(5);
             decoderConfigDescriptor.setBufferSizeDB(1536);
-            decoderConfigDescriptor.setMaxBitRate(96000);
-            decoderConfigDescriptor.setAvgBitRate(96000);
+            if (format.containsKey("max-bitrate")) {
+                decoderConfigDescriptor.setMaxBitRate(format.getInteger("max-bitrate"));
+            } else {
+                decoderConfigDescriptor.setMaxBitRate(96000);
+            }
+            decoderConfigDescriptor.setAvgBitRate(timeScale);
 
             AudioSpecificConfig audioSpecificConfig = new AudioSpecificConfig();
             audioSpecificConfig.setAudioObjectType(2);

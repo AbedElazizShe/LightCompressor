@@ -148,8 +148,6 @@ object Compressor {
             else -> rotation
         }
 
-        var noExceptions = true
-
         if (newWidth != 0 && newHeight != 0) {
 
             val cacheFile = File(destination)
@@ -180,7 +178,7 @@ object Compressor {
                     newBitrate,
                 )
 
-                var decoder: MediaCodec? = null
+                val decoder: MediaCodec
 
                 var hasQTI = false
 
@@ -204,8 +202,8 @@ object Compressor {
                     MediaCodec.createEncoderByType(MIME_TYPE)
                 }
 
-                var inputSurface: InputSurface? = null
-                var outputSurface: OutputSurface? = null
+                val inputSurface: InputSurface
+                val outputSurface: OutputSurface
 
                 try {
 
@@ -433,29 +431,20 @@ object Compressor {
                     }
                 } catch (exception: Exception) {
                     printException(exception)
-                    noExceptions = false
-
-                } finally {
-                    extractor.unselectTrack(videoIndex)
-
-                    decoder?.stop()
-                    decoder?.release()
-
-                    encoder.stop()
-                    encoder.release()
-
-                    inputSurface?.release()
-                    outputSurface?.release()
-
-
-                    if (noExceptions) {
-                        processAudio(
-                            extractor = extractor,
-                            mediaMuxer = mediaMuxer,
-                            bufferInfo = bufferInfo
-                        )
-                    }
+                    return Result(success = false, failureMessage = exception.message)
                 }
+
+                dispose(
+                    extractor,
+                    videoIndex,
+                    decoder,
+                    encoder,
+                    inputSurface,
+                    outputSurface,
+                    mediaMuxer,
+                    bufferInfo,
+                )
+
                 extractor.release()
                 try {
                     mediaMuxer.finishMovie()
@@ -471,6 +460,35 @@ object Compressor {
         }
 
         return Result(success = false, failureMessage = "Something went wrong, please try again")
+
+    }
+
+    private fun dispose(
+        extractor: MediaExtractor,
+        videoIndex: Int,
+        decoder: MediaCodec,
+        encoder: MediaCodec,
+        inputSurface: InputSurface,
+        outputSurface: OutputSurface,
+        mediaMuxer: MP4Builder,
+        bufferInfo: MediaCodec.BufferInfo,
+    ) {
+        extractor.unselectTrack(videoIndex)
+
+        decoder.stop()
+        decoder.release()
+
+        encoder.stop()
+        encoder.release()
+
+        inputSurface.release()
+        outputSurface.release()
+
+        processAudio(
+            extractor = extractor,
+            mediaMuxer = mediaMuxer,
+            bufferInfo = bufferInfo
+        )
 
     }
 
@@ -593,14 +611,6 @@ object Compressor {
 
             if (Build.VERSION.SDK_INT > 23) {
 
-                getProfile(inputFormat)?.let {
-                    setInteger(MediaFormat.KEY_PROFILE, it)
-                }
-
-                getLevel(inputFormat)?.let {
-                    setInteger(MediaFormat.KEY_LEVEL, it)
-                }
-
                 getColorStandard(inputFormat)?.let {
                     setInteger(MediaFormat.KEY_COLOR_STANDARD, it)
                 }
@@ -691,21 +701,6 @@ object Compressor {
             MediaFormat.KEY_I_FRAME_INTERVAL
         )
         else I_FRAME_INTERVAL
-    }
-
-    @RequiresApi(Build.VERSION_CODES.M)
-    private fun getLevel(format: MediaFormat): Int? {
-        return if (format.containsKey(MediaFormat.KEY_LEVEL)) format.getInteger(
-            MediaFormat.KEY_LEVEL
-        )
-        else null
-    }
-
-    private fun getProfile(format: MediaFormat): Int? {
-        return if (format.containsKey(MediaFormat.KEY_PROFILE)) format.getInteger(
-            MediaFormat.KEY_PROFILE
-        )
-        else null
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
