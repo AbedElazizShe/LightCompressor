@@ -11,6 +11,8 @@ import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
+import net.ypresto.qtfaststart.QtFastStart
+
 
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
@@ -39,6 +41,7 @@ object Compressor {
         srcUri: Uri?,
         srcPath: String?,
         destination: String,
+        streamableFile: String?,
         configuration: Configuration,
         listener: CompressionProgressListener,
     ): Result {
@@ -456,12 +459,24 @@ object Compressor {
                 printException(exception)
             }
 
+            streamableFile?.let {
+                try {
+                    val result = QtFastStart.fastStart(cacheFile, File(it))
+                    if(result && cacheFile.exists()) {
+                        cacheFile.delete()
+                    }
+
+                } catch (e: Exception) {
+                    printException(e)
+                }
+            }
             return Result(success = true, failureMessage = null)
         }
 
         return Result(success = false, failureMessage = "Something went wrong, please try again")
 
     }
+
 
     private fun dispose(
         extractor: MediaExtractor,
@@ -675,7 +690,7 @@ object Compressor {
                         bufferInfo.apply {
                             presentationTimeUs = extractor.sampleTime
                             offset = 0
-                            flags = extractor.sampleFlags
+                            flags = MediaCodec.BUFFER_FLAG_KEY_FRAME
                         }
                         mediaMuxer.writeSampleData(muxerTrackIndex, buffer, bufferInfo, true)
                         extractor.advance()

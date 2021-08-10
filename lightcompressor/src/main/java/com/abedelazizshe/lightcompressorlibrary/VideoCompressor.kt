@@ -51,6 +51,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcUri: Uri? = null,
         srcPath: String? = null,
         destPath: String,
+        streamableFile: String? = null,
         listener: CompressionListener,
         configureWith: Configuration,
     ) {
@@ -59,6 +60,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
             srcUri,
             srcPath,
             destPath,
+            streamableFile,
             configureWith,
             listener,
         )
@@ -78,6 +80,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcUri: Uri?,
         srcPath: String?,
         destPath: String,
+        streamableFile: String? = null,
         configuration: Configuration,
         listener: CompressionListener,
     ) = launch {
@@ -88,6 +91,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
             srcUri,
             srcPath,
             destPath,
+            streamableFile,
             configuration,
             listener,
         )
@@ -106,6 +110,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         srcUri: Uri?,
         srcPath: String?,
         destPath: String,
+        streamableFile: String? = null,
         configuration: Configuration,
         listener: CompressionListener,
     ): Result = withContext(Dispatchers.IO) {
@@ -114,6 +119,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
             srcUri,
             srcPath,
             destPath,
+            streamableFile,
             configuration,
             object : CompressionProgressListener {
                 override fun onProgressChanged(percent: Float) {

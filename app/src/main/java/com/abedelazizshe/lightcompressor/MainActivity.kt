@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_CAPTURE_VIDEO = 1
     }
 
-    private lateinit var path: String
+    private lateinit var playableVideoPath: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
             VideoCompressor.cancel()
         }
 
-        videoLayout.setOnClickListener { VideoPlayerActivity.start(this, path) }
+        videoLayout.setOnClickListener { VideoPlayerActivity.start(this, playableVideoPath) }
     }
 
     //Pick a video file from device
@@ -127,6 +127,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun processVideo(uri: Uri?) {
+        var streamableFile: File? = null
         uri?.let {
             mainContents.visibility = View.VISIBLE
             Glide.with(applicationContext).load(uri).into(videoImage)
@@ -136,9 +137,13 @@ class MainActivity : AppCompatActivity() {
                 // this implementation is not the best way to do it,
                 // todo(abed): improve threading
                 val job = async { getMediaPath(applicationContext, uri) }
-                path = job.await()
+                val path = job.await()
 
                 val desFile = saveVideoFile(path)
+                streamableFile = saveVideoFile(path)
+
+                playableVideoPath = if (streamableFile != null) streamableFile!!.path
+                else path
 
                 desFile?.let {
                     var time = 0L
@@ -147,6 +152,7 @@ class MainActivity : AppCompatActivity() {
                         srcUri = uri,
                         // srcPath = path,
                         destPath = desFile.path,
+                        streamableFile = streamableFile?.path,
                         listener = object : CompressionListener {
                             override fun onProgress(percent: Float) {
                                 //Update UI
@@ -168,7 +174,9 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             override fun onSuccess() {
-                                val newSizeValue = desFile.length()
+                                val newSizeValue =
+                                    if (streamableFile != null) streamableFile!!.length()
+                                    else desFile.length()
 
                                 newSize.text =
                                     "Size after compression: ${getFileSize(newSizeValue)}"
@@ -176,8 +184,6 @@ class MainActivity : AppCompatActivity() {
                                 time = System.currentTimeMillis() - time
                                 timeTaken.text =
                                     "Duration: ${DateUtils.formatElapsedTime(time / 1000)}"
-
-                                path = desFile.path
 
                                 Looper.myLooper()?.let {
                                     Handler(it).postDelayed({

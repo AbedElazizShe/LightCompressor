@@ -14,6 +14,9 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
+# What's new in 0.9.5
+
+- You can pass [streamableFile] path to get a video output that is optimised to be streamed - moov atom is at the top -. Ensure you pass [destPath] as usual too - for now -.
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
@@ -88,6 +91,9 @@ Then just call [VideoCompressor.start()] and pass both source and destination fi
 **NOTE**: The source video can be provided as a string path or a content uri. If both [srcPath] and
 [srcUri] are provided, [srcUri] will be ignored. Passing [srcUri] requires [context].
 
+**NOTE**: If you want an output video that is optimised to be streamed, ensure you pass [streamableFile] path that is different from the [destPath]. Note
+that both are needed - for now -.
+
 The method has a callback for 5 functions;
 1) OnStart - called when compression started
 2) OnSuccess - called when compression completed with no errors/exceptions
@@ -108,6 +114,7 @@ VideoCompressor.start(
    srcUri = uri, // => Source can be provided as content uri, it requires context.
    srcPath = path, // => This could be ignored or null if srcUri and context are provided.
    destPath = desFile.path,
+   streamableFile = streamableFile, /*String, ignore, or null*/
    listener = object : CompressionListener {
        override fun onProgress(percent: Float) {
           // Update UI with progress value
@@ -154,6 +161,7 @@ VideoCompressor.start(
     uri, // => Source can be provided as content uri, it requires context.
     path, // => This could be null if srcUri and context are provided.
     desFile.path,
+    streamableFile.path, /*String, or null*/
     new CompressionListener() {
        @Override
        public void onStart() {
@@ -204,7 +212,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.4) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1-bpBrfcr7RTf-0Xwk73l5-WTOYkc6X88/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.4) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1Idx8dcgcu68B-UIJOO1ZzbajFTmZue8O/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -241,7 +249,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.4'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.5'
 ```
 
 ## Getting help
