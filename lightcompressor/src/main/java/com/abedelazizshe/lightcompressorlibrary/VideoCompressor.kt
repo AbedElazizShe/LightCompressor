@@ -2,9 +2,10 @@ package com.abedelazizshe.lightcompressorlibrary
 
 import android.content.Context
 import android.net.Uri
-import com.abedelazizshe.lightcompressorlibrary.Compressor.compressVideo
-import com.abedelazizshe.lightcompressorlibrary.Compressor.isRunning
+import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.compressVideo
+import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.isRunning
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
+import com.abedelazizshe.lightcompressorlibrary.video.Result
 import kotlinx.coroutines.*
 
 enum class VideoQuality {
@@ -37,10 +38,6 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * This defaults to [VideoQuality.MEDIUM]
      * [Configuration.isMinBitRateEnabled] to determine if the checking for a minimum bitrate threshold
      * before compression is enabled or not. This default to `true`
-     * [Configuration.keepOriginalResolution] to keep the original video height and width when compressing.
-     * This defaults to `false`
-     * [Configuration.videoHeight] which is a custom height for the video. Must be specified with [Configuration.videoWidth]
-     * [Configuration.videoWidth] which is a custom width for the video. Must be specified with [Configuration.videoHeight]
      * [Configuration.videoBitrate] which is a custom bitrate for the video. You might consider setting
      * [Configuration.isMinBitRateEnabled] to `false` if your bitrate is less than 2000000.
      */

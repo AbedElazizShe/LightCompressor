@@ -14,9 +14,11 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 0.9.6
+# What's new in 0.9.7
 
-- You can pass [streamableFile] path to get a video output that is optimised to be streamed - moov atom is at the top -. Ensure you pass [destPath] as usual too - for now -.
+- **BREAKING**: keepOriginalResolution, videoHeight, and videoWidth can longer be set in Configuration, the library determines the best resolution to avoid issues with video players.
+- Compression speed is improved.
+- Bugs fixes.
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
@@ -42,8 +44,8 @@ when {
       newHeight = (((height * 0.75) / 16).roundToInt() * 16)
    }
    width >= 960 || height >= 960 -> {
-      newWidth = (((MIN_HEIGHT * 0.95) / 16).roundToInt() * 16)
-      newHeight = (((MIN_WIDTH * 0.95) / 16).roundToInt() * 16)
+      newWidth = (((width * 0.95) / 16).roundToInt() * 16)
+      newHeight = (((height * 0.95) / 16).roundToInt() * 16)
    }
    else -> {
       newWidth = (((width * 0.9) / 16).roundToInt() * 16)
@@ -146,9 +148,6 @@ VideoCompressor.start(
    configureWith = Configuration(
       quality = VideoQuality.MEDIUM,
       isMinBitRateEnabled = true,
-      keepOriginalResolution = false,
-      videoHeight = 320.0 /*Double, ignore, or null*/,
-      videoWidth = 320.0 /*Double, ignore, or null*/,
       videoBitrate = 3677198 /*Int, ignore, or null*/
    )
 )
@@ -196,9 +195,6 @@ VideoCompressor.start(
     }, new Configuration(
         VideoQuality.MEDIUM,
         false,
-        false,
-        null /*videoHeight: double, or null*/,
-        null /*videoWidth: double, or null*/,
         null /*videoBitrate: int, or null*/
     )
 );
@@ -212,7 +208,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.6) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1Idx8dcgcu68B-UIJOO1ZzbajFTmZue8O/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.7) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1yiFU12ELhRKHsGfm6MnKqIDd5YXPUUrL/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -249,7 +245,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.6'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.7'
 ```
 
 ## Getting help

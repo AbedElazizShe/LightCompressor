@@ -204,9 +204,8 @@ class MainActivity : AppCompatActivity() {
                             }
                         },
                         configureWith = Configuration(
-                            quality = VideoQuality.MEDIUM,
+                            quality = VideoQuality.HIGH,
                             isMinBitRateEnabled = true,
-                            keepOriginalResolution = false,
                         )
                     )
                 }

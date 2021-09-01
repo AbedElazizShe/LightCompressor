@@ -1,4 +1,4 @@
-package com.abedelazizshe.lightcompressorlibrary
+package com.abedelazizshe.lightcompressorlibrary.video
 
 data class Result(
     val success: Boolean,
