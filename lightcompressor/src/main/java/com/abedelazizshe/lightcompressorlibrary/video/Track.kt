@@ -1,6 +1,7 @@
 package com.abedelazizshe.lightcompressorlibrary.video
 
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import com.coremedia.iso.boxes.AbstractMediaHeaderBox
 import com.coremedia.iso.boxes.SampleDescriptionBox
@@ -91,99 +92,99 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
                     avcConfigurationBox.pictureParameterSets = ppsArray
                 }
 
-//                if (format.containsKey("level")) {
-//                    when (format.getInteger("level")) {
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel1 -> {
-//                            avcConfigurationBox.avcLevelIndication = 1
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel2 -> {
-//                            avcConfigurationBox.avcLevelIndication = 2
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel11 -> {
-//                            avcConfigurationBox.avcLevelIndication = 11
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel12 -> {
-//                            avcConfigurationBox.avcLevelIndication = 12
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel13 -> {
-//                            avcConfigurationBox.avcLevelIndication = 13
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel21 -> {
-//                            avcConfigurationBox.avcLevelIndication = 21
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel22 -> {
-//                            avcConfigurationBox.avcLevelIndication = 22
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel3 -> {
-//                            avcConfigurationBox.avcLevelIndication = 3
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel31 -> {
-//                            avcConfigurationBox.avcLevelIndication = 31
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel32 -> {
-//                            avcConfigurationBox.avcLevelIndication = 32
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel4 -> {
-//                            avcConfigurationBox.avcLevelIndication = 4
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel41 -> {
-//                            avcConfigurationBox.avcLevelIndication = 41
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel42 -> {
-//                            avcConfigurationBox.avcLevelIndication = 42
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel5 -> {
-//                            avcConfigurationBox.avcLevelIndication = 5
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel51 -> {
-//                            avcConfigurationBox.avcLevelIndication = 51
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel52 -> {
-//                            avcConfigurationBox.avcLevelIndication = 52
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCLevel1b -> {
-//                            avcConfigurationBox.avcLevelIndication = 0x1b
-//                        }
-//                        else -> avcConfigurationBox.avcLevelIndication = 13
-//                    }
-//                } else {
-                avcConfigurationBox.avcLevelIndication = 52
-                //  }
+                if (format.containsKey("level")) {
+                    when (format.getInteger("level")) {
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel1 -> {
+                            avcConfigurationBox.avcLevelIndication = 1
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel2 -> {
+                            avcConfigurationBox.avcLevelIndication = 2
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel11 -> {
+                            avcConfigurationBox.avcLevelIndication = 11
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel12 -> {
+                            avcConfigurationBox.avcLevelIndication = 12
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel13 -> {
+                            avcConfigurationBox.avcLevelIndication = 13
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel21 -> {
+                            avcConfigurationBox.avcLevelIndication = 21
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel22 -> {
+                            avcConfigurationBox.avcLevelIndication = 22
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel3 -> {
+                            avcConfigurationBox.avcLevelIndication = 3
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel31 -> {
+                            avcConfigurationBox.avcLevelIndication = 31
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel32 -> {
+                            avcConfigurationBox.avcLevelIndication = 32
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel4 -> {
+                            avcConfigurationBox.avcLevelIndication = 4
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel41 -> {
+                            avcConfigurationBox.avcLevelIndication = 41
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel42 -> {
+                            avcConfigurationBox.avcLevelIndication = 42
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel5 -> {
+                            avcConfigurationBox.avcLevelIndication = 5
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel51 -> {
+                            avcConfigurationBox.avcLevelIndication = 51
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel52 -> {
+                            avcConfigurationBox.avcLevelIndication = 52
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCLevel1b -> {
+                            avcConfigurationBox.avcLevelIndication = 0x1b
+                        }
+                        else -> avcConfigurationBox.avcLevelIndication = 13
+                    }
+                } else {
+                    avcConfigurationBox.avcLevelIndication = 13
+                }
 
-//                if (format.containsKey("profile")) {
-//                    when (format.getInteger("profile")) {
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline -> {
-//                            avcConfigurationBox.avcProfileIndication = 66
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileMain -> {
-//                            avcConfigurationBox.avcProfileIndication = 77
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileExtended -> {
-//                            avcConfigurationBox.avcProfileIndication = 88
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh -> {
-//                            avcConfigurationBox.avcProfileIndication = 100
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh10 -> {
-//                            avcConfigurationBox.avcProfileIndication = 110
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh422 -> {
-//                            avcConfigurationBox.avcProfileIndication = 122
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh444 -> {
-//                            avcConfigurationBox.avcProfileIndication = 244
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedHigh -> {
-//                            avcConfigurationBox.avcProfileIndication = 488
-//                        }
-//                        MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedBaseline -> {
-//                            avcConfigurationBox.avcProfileIndication = 244
-//                        }
-//                        else -> avcConfigurationBox.avcProfileIndication = 100
-//                    }
-//                } else {
-                avcConfigurationBox.avcProfileIndication = 8
-                //   }
+                if (format.containsKey("profile")) {
+                    when (format.getInteger("profile")) {
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline -> {
+                            avcConfigurationBox.avcProfileIndication = 66
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileMain -> {
+                            avcConfigurationBox.avcProfileIndication = 77
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileExtended -> {
+                            avcConfigurationBox.avcProfileIndication = 88
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh -> {
+                            avcConfigurationBox.avcProfileIndication = 100
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh10 -> {
+                            avcConfigurationBox.avcProfileIndication = 110
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh422 -> {
+                            avcConfigurationBox.avcProfileIndication = 122
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileHigh444 -> {
+                            avcConfigurationBox.avcProfileIndication = 244
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedHigh -> {
+                            avcConfigurationBox.avcProfileIndication = 488
+                        }
+                        MediaCodecInfo.CodecProfileLevel.AVCProfileConstrainedBaseline -> {
+                            avcConfigurationBox.avcProfileIndication = 244
+                        }
+                        else -> avcConfigurationBox.avcProfileIndication = 100
+                    }
+                } else {
+                    avcConfigurationBox.avcProfileIndication = 100
+                }
                 avcConfigurationBox.bitDepthLumaMinus8 = -1
                 avcConfigurationBox.bitDepthChromaMinus8 = -1
                 avcConfigurationBox.chromaFormat = -1

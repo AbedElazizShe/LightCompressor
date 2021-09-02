@@ -14,7 +14,7 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 0.9.7
+# What's new in 0.9.8
 
 - **BREAKING**: keepOriginalResolution, videoHeight, and videoWidth can longer be set in Configuration, the library determines the best resolution to avoid issues with video players.
 - Compression speed is improved.
@@ -208,7 +208,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.7) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1yiFU12ELhRKHsGfm6MnKqIDd5YXPUUrL/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.8) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1l3Eq0F8OnkEt9rfbzfBEr-S5XgRY5j0X/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -245,7 +245,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.7'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.8'
 ```
 
 ## Getting help

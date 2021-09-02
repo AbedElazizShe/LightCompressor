@@ -2,9 +2,6 @@ package com.abedelazizshe.lightcompressorlibrary.utils
 
 import android.content.Context
 import android.media.*
-import android.media.MediaCodecInfo.CodecProfileLevel.AVCLevel52
-import android.media.MediaCodecInfo.CodecProfileLevel.AVCProfileHigh
-import android.media.MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -109,11 +106,7 @@ object CompressorUtils {
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
 
-            setInteger(MediaFormat.KEY_BITRATE_MODE, BITRATE_MODE_VBR)
-            setInteger(MediaFormat.KEY_PROFILE, AVCProfileHigh)
-
             if (Build.VERSION.SDK_INT > 23) {
-                setInteger(MediaFormat.KEY_LEVEL, AVCLevel52)
 
                 getColorStandard(inputFormat)?.let {
                     setInteger(MediaFormat.KEY_COLOR_STANDARD, it)
@@ -260,7 +253,7 @@ object CompressorUtils {
         val list = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
         for (codec in list) {
             Log.i("CODECS: ", codec.name)
-            if (codec.name.contains("c2.qti.avc.encoder")) {
+            if (codec.name.contains("qti.avc")) {
                 return true
             }
         }
