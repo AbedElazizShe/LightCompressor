@@ -14,15 +14,16 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 0.9.8
+# What's new in 0.9.9
 
-- **BREAKING**: keepOriginalResolution, videoHeight, and videoWidth can longer be set in Configuration, the library determines the best resolution to avoid issues with video players.
-- Compression speed is improved.
-- Bugs fixes.
+- **BREAKING**: Renamed isMinBitRateEnabled to isMinBitrateCheckEnabled
+ - Passing frameRate value to the compressor is now allowed
+ - Redefined the bitrate values for each of the Qualities
+
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
-* Bitrate: 2MB
+* Bitrate: 2mbps
 
 You can pass one of a 5 video qualities; VERY_HIGH, HIGH, MEDIUM, LOW, OR VERY_LOW and the library will handle generating the right bitrate value for the output video
 ```kotlin
