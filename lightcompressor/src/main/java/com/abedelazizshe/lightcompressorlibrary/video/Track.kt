@@ -3,10 +3,7 @@ package com.abedelazizshe.lightcompressorlibrary.video
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
-import com.coremedia.iso.boxes.AbstractMediaHeaderBox
 import com.coremedia.iso.boxes.SampleDescriptionBox
-import com.coremedia.iso.boxes.SoundMediaHeaderBox
-import com.coremedia.iso.boxes.VideoMediaHeaderBox
 import com.coremedia.iso.boxes.sampleentry.AudioSampleEntry
 import com.coremedia.iso.boxes.sampleentry.VisualSampleEntry
 import com.googlecode.mp4parser.boxes.mp4.ESDescriptorBox
@@ -23,7 +20,6 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
     private val samples = ArrayList<Sample>()
     private var duration: Long = 0
     private var handler: String
-    private var headerBox: AbstractMediaHeaderBox
     private var sampleDescriptionBox: SampleDescriptionBox
     private var syncSamples: LinkedList<Int>? = null
     private var timeScale = 0
@@ -61,7 +57,7 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             timeScale = 90000
             syncSamples = LinkedList()
             handler = "vide"
-            headerBox = VideoMediaHeaderBox()
+
             sampleDescriptionBox = SampleDescriptionBox()
             val mime = format.getString(MediaFormat.KEY_MIME)
             if (mime == "video/avc") {
@@ -82,14 +78,16 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
 
                     val ppsArray = ArrayList<ByteArray>()
                     val ppsBuff = format.getByteBuffer("csd-1")
-                    ppsBuff!!.position(4)
+                    ppsBuff?.let {
+                        it.position(4)
 
-                    val ppsBytes = ByteArray(ppsBuff.remaining())
-                    ppsBuff[ppsBytes]
+                        val ppsBytes = ByteArray(it.remaining())
+                        it[ppsBytes]
 
-                    ppsArray.add(ppsBytes)
-                    avcConfigurationBox.sequenceParameterSets = spsArray
-                    avcConfigurationBox.pictureParameterSets = ppsArray
+                        ppsArray.add(ppsBytes)
+                        avcConfigurationBox.sequenceParameterSets = spsArray
+                        avcConfigurationBox.pictureParameterSets = ppsArray
+                    }
                 }
 
                 if (format.containsKey("level")) {
@@ -207,7 +205,6 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             volume = 1f
             timeScale = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
             handler = "soun"
-            headerBox = SoundMediaHeaderBox()
             sampleDescriptionBox = SampleDescriptionBox()
 
             val audioSampleEntry = AudioSampleEntry(AudioSampleEntry.TYPE3)
@@ -239,10 +236,11 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             decoderConfigDescriptor.bufferSizeDB = 1536
             if (format.containsKey("max-bitrate")) {
                 decoderConfigDescriptor.maxBitRate = format.getInteger("max-bitrate").toLong()
+                decoderConfigDescriptor.avgBitRate = 192000
             } else {
                 decoderConfigDescriptor.maxBitRate = 96000
+                decoderConfigDescriptor.avgBitRate = 96000
             }
-            decoderConfigDescriptor.avgBitRate = 96000
 
             val audioSpecificConfig = AudioSpecificConfig()
             audioSpecificConfig.setAudioObjectType(2)
@@ -290,8 +288,6 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
     fun getDuration(): Long = duration
 
     fun getHandler(): String = handler
-
-    fun getMediaHeaderBox(): AbstractMediaHeaderBox = headerBox
 
     fun getSampleDescriptionBox(): SampleDescriptionBox = sampleDescriptionBox
 

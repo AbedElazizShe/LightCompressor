@@ -131,7 +131,7 @@ object Compressor {
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
-        if (configuration.isMinBitRateEnabled && bitrate <= MIN_BITRATE)
+        if (configuration.isMinBitrateCheckEnabled && bitrate <= MIN_BITRATE)
             return Result(success = false, failureMessage = INVALID_BITRATE)
 
         //Handle new bitrate value
@@ -157,7 +157,14 @@ object Compressor {
             else -> rotation
         }
 
-        return start(newWidth, newHeight, destination, newBitrate, streamableFile)
+        return start(
+            newWidth,
+            newHeight,
+            destination,
+            newBitrate,
+            streamableFile,
+            configuration.frameRate
+        )
     }
 
     @Suppress("DEPRECATION")
@@ -166,7 +173,8 @@ object Compressor {
         newHeight: Int,
         destination: String,
         newBitrate: Int,
-        streamableFile: String?
+        streamableFile: String?,
+        frameRate: Int?
     ): Result {
 
         if (newWidth != 0 && newHeight != 0) {
@@ -198,6 +206,7 @@ object Compressor {
                     inputFormat,
                     outputFormat,
                     newBitrate,
+                    frameRate
                 )
 
                 val decoder: MediaCodec

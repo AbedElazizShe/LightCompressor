@@ -16,9 +16,6 @@ object CompressorUtils {
     private const val MIN_HEIGHT = 640.0
     private const val MIN_WIDTH = 368.0
 
-    // 30fps
-    private const val FRAME_RATE = 30
-
     // 10 seconds between I-frames
     private const val I_FRAME_INTERVAL = 10
 
@@ -93,8 +90,9 @@ object CompressorUtils {
         inputFormat: MediaFormat,
         outputFormat: MediaFormat,
         newBitrate: Int,
+        frameRate: Int?,
     ) {
-        val frameRate = getFrameRate(inputFormat)
+        val newFrameRate = getFrameRate(inputFormat, frameRate)
         val iFrameInterval = getIFrameIntervalRate(inputFormat)
         outputFormat.apply {
             setInteger(
@@ -102,7 +100,7 @@ object CompressorUtils {
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
             )
 
-            setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
+            setInteger(MediaFormat.KEY_FRAME_RATE, newFrameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
 
@@ -128,9 +126,10 @@ object CompressorUtils {
         }
     }
 
-    private fun getFrameRate(format: MediaFormat): Int {
+    private fun getFrameRate(format: MediaFormat, frameRate: Int?): Int {
+        if (frameRate != null) return frameRate
         return if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) format.getInteger(MediaFormat.KEY_FRAME_RATE)
-        else FRAME_RATE
+        else 30
     }
 
     private fun getIFrameIntervalRate(format: MediaFormat): Int {
@@ -205,11 +204,11 @@ object CompressorUtils {
         quality: VideoQuality,
     ): Int {
         return when (quality) {
-            VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
-            VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
-            VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
-            VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
-            VideoQuality.VERY_HIGH -> (bitrate * 0.5).roundToInt()
+            VideoQuality.VERY_LOW -> (bitrate * 0.1).roundToInt()
+            VideoQuality.LOW -> (bitrate * 0.2).roundToInt()
+            VideoQuality.MEDIUM -> (bitrate * 0.3).roundToInt()
+            VideoQuality.HIGH -> (bitrate * 0.4).roundToInt()
+            VideoQuality.VERY_HIGH -> (bitrate * 0.6).roundToInt()
         }
     }
 

@@ -78,7 +78,7 @@ class MP4Builder {
             flushCurrentMdat()
             writeNewMdat = true
             flush = true
-            wroteSinceLastMdat -= 32 * 1024
+            wroteSinceLastMdat = 0
         }
 
         currentMp4Movie.addSample(trackIndex, dataOffset, bufferInfo)
@@ -203,6 +203,7 @@ class MP4Builder {
         val tkhd = TrackHeaderBox()
         tkhd.apply {
             isEnabled = true
+            isInPreview = true
             isInMovie = true
             matrix = if (track.isAudio()) {
                 Matrix.ROTATE_0
@@ -241,7 +242,26 @@ class MP4Builder {
         mdia.addBox(hdlr)
 
         val minf = MediaInformationBox()
-        minf.addBox(track.getMediaHeaderBox())
+        when {
+            track.getHandler() == "vide" -> {
+                minf.addBox(VideoMediaHeaderBox())
+            }
+            track.getHandler() == "soun" -> {
+                minf.addBox(SoundMediaHeaderBox())
+            }
+            track.getHandler() == "text" -> {
+                minf.addBox(NullMediaHeaderBox())
+            }
+            track.getHandler() == "subt" -> {
+                minf.addBox(SubtitleMediaHeaderBox())
+            }
+            track.getHandler() == "hint" -> {
+                minf.addBox(HintMediaHeaderBox())
+            }
+            track.getHandler() == "sbtl" -> {
+                minf.addBox(NullMediaHeaderBox())
+            }
+        }
 
         val dinf = DataInformationBox()
         val dref = DataReferenceBox()

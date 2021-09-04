@@ -27,11 +27,11 @@ When the video file is called to be compressed, the library checks if the user w
 You can pass one of a 5 video qualities; VERY_HIGH, HIGH, MEDIUM, LOW, OR VERY_LOW and the library will handle generating the right bitrate value for the output video
 ```kotlin
 return when (quality) {
-    VideoQuality.VERY_LOW -> (bitrate * 0.08).roundToInt()
-    VideoQuality.LOW -> (bitrate * 0.1).roundToInt()
-    VideoQuality.MEDIUM -> (bitrate * 0.2).roundToInt()
-    VideoQuality.HIGH -> (bitrate * 0.3).roundToInt()
-    VideoQuality.VERY_HIGH -> (bitrate * 0.5).roundToInt()
+    VideoQuality.VERY_LOW -> (bitrate * 0.1).roundToInt()
+    VideoQuality.LOW -> (bitrate * 0.2).roundToInt()
+    VideoQuality.MEDIUM -> (bitrate * 0.3).roundToInt()
+    VideoQuality.HIGH -> (bitrate * 0.4).roundToInt()
+    VideoQuality.VERY_HIGH -> (bitrate * 0.6).roundToInt()
 }
 
 when {
@@ -54,7 +54,7 @@ when {
 }
 ```
 
-You can as well pass custom videoHeight, videoWidth, and videoBitrate values if you don't want the library to auto-generate the values for you. **The compression will fail if height or width is specified without the other, so ensure you pass both values**.
+You can as well pass custom frameRate and videoBitrate values if you don't want the library to auto-generate the values for you.
 
 These values were tested on a huge set of videos and worked fine and fast with them. They might be changed based on the project needs and expectations.
 
@@ -103,8 +103,16 @@ The method has a callback for 5 functions;
 4) OnProgress - called with progress new value
 5) OnCancelled - called when the job is cancelled
 
-You can pass the optional video quality (default is medium) and if to enable checking for min bitrate (default is true), in addition, if you wish to keep the
-original video width and height from being changed during compression, you can pass true or false for keepOriginalResolution where default is false.
+### Configuration values
+
+- VideoQuality: VERY_HIGH (original-bitrate * 0.6) , HIGH (original-bitrate * 0.4), MEDIUM (original-bitrate * 0.3), LOW (original-bitrate * 0.2), OR VERY_LOW (original-bitrate * 0.1)
+
+- isMinBitrateCheckEnabled: this means, don't compress if bitrate is less than 2mbps
+
+- frameRate: any fps value
+
+- videoBitrate: any custom bitrate value
+
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
@@ -147,7 +155,8 @@ VideoCompressor.start(
    },
    configureWith = Configuration(
       quality = VideoQuality.MEDIUM,
-      isMinBitRateEnabled = true,
+      frameRate = 24, /*Int, ignore, or null*/
+      isMinBitrateCheckEnabled = true,
       videoBitrate = 3677198 /*Int, ignore, or null*/
    )
 )
@@ -194,6 +203,7 @@ VideoCompressor.start(
        }
     }, new Configuration(
         VideoQuality.MEDIUM,
+        24, /*frameRate: int, or null*/
         false,
         null /*videoBitrate: int, or null*/
     )
@@ -208,7 +218,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 0.9.8) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1l3Eq0F8OnkEt9rfbzfBEr-S5XgRY5j0X/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 0.9.9) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1x9rtwDIyA3YaokHrthP_kMpxAJNiqZwD/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -245,7 +255,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.8'
+implementation 'com.github.AbedElazizShe:LightCompressor:0.9.9'
 ```
 
 ## Getting help
