@@ -22,7 +22,6 @@ import com.abedelazizshe.lightcompressorlibrary.video.*
 import java.io.File
 import java.nio.ByteBuffer
 
-
 /**
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
  * elaziz.shehadeh@gmail.com
@@ -163,7 +162,8 @@ object Compressor {
             destination,
             newBitrate,
             streamableFile,
-            configuration.frameRate
+            configuration.frameRate,
+            configuration.disableAudio
         )
     }
 
@@ -174,7 +174,8 @@ object Compressor {
         destination: String,
         newBitrate: Int,
         streamableFile: String?,
-        frameRate: Int?
+        frameRate: Int?,
+        disableAudio: Boolean
     ): Result {
 
         if (newWidth != 0 && newHeight != 0) {
@@ -403,7 +404,8 @@ object Compressor {
 
                 processAudio(
                     mediaMuxer = mediaMuxer,
-                    bufferInfo = bufferInfo
+                    bufferInfo = bufferInfo,
+                    disableAudio = disableAudio,
                 )
 
                 extractor.release()
@@ -437,9 +439,10 @@ object Compressor {
     private fun processAudio(
         mediaMuxer: MP4Builder,
         bufferInfo: MediaCodec.BufferInfo,
+        disableAudio: Boolean,
     ) {
         val audioIndex = findTrack(extractor, isVideo = false)
-        if (audioIndex >= 0) {
+        if (audioIndex >= 0 && !disableAudio) {
             extractor.selectTrack(audioIndex)
             val audioFormat = extractor.getTrackFormat(audioIndex)
             val muxerTrackIndex = mediaMuxer.addTrack(audioFormat, true)
@@ -482,9 +485,7 @@ object Compressor {
                     inputDone = true
                 }
             }
-
             extractor.unselectTrack(audioIndex)
-
         }
     }
 

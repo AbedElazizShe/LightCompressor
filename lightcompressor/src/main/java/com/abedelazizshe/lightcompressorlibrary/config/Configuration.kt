@@ -7,4 +7,5 @@ data class Configuration(
     var frameRate: Int? = null,
     var isMinBitrateCheckEnabled: Boolean = true,
     var videoBitrate: Int? = null,
+    var disableAudio: Boolean = false
 )

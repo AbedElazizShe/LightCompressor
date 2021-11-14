@@ -48,7 +48,6 @@ class MP4Builder {
         mdat.setDataOffset(0)
         mdat.setContentSize(0)
         fos.flush()
-        fos.fd.sync()
     }
 
     @Throws(Exception::class)
@@ -57,7 +56,7 @@ class MP4Builder {
         byteBuf: ByteBuffer,
         bufferInfo: MediaCodec.BufferInfo,
         isAudio: Boolean
-    ): Long {
+    ) {
 
         if (writeNewMdat) {
             mdat.apply {
@@ -84,28 +83,24 @@ class MP4Builder {
         currentMp4Movie.addSample(trackIndex, dataOffset, bufferInfo)
 
         if (!isAudio) {
+            byteBuf.position(bufferInfo.offset + 4)
+            byteBuf.limit(bufferInfo.offset + bufferInfo.size)
+
             sizeBuffer.position(0)
             sizeBuffer.putInt(bufferInfo.size - 4)
             sizeBuffer.position(0)
             fc.write(sizeBuffer)
-
-            byteBuf.position(bufferInfo.offset + 4)
         } else {
-            byteBuf.position(bufferInfo.offset)
+            byteBuf.position(bufferInfo.offset + 0)
+            byteBuf.limit(bufferInfo.offset + bufferInfo.size)
         }
-
-        byteBuf.limit(bufferInfo.offset + bufferInfo.size)
 
         fc.write(byteBuf)
         dataOffset += bufferInfo.size.toLong()
 
         if (flush) {
             fos.flush()
-            fos.fd.sync()
-            return fc.position()
         }
-
-        return 0
     }
 
     fun addTrack(mediaFormat: MediaFormat, isAudio: Boolean): Int =
@@ -130,8 +125,6 @@ class MP4Builder {
         moov.getBox(fc)
 
         fos.flush()
-        fos.fd.sync()
-
         fc.close()
         fos.close()
     }
@@ -139,10 +132,10 @@ class MP4Builder {
     private fun createFileTypeBox(): FileTypeBox {
         // completed list can be found at https://www.ftyps.com/
         val minorBrands = listOf(
-            "isom", "mp42",
+            "isom", "mp42", "3gp4"
         )
 
-        return FileTypeBox("mp42", 0, minorBrands)
+        return FileTypeBox("isom", 0, minorBrands)
     }
 
     private fun gcd(a: Long, b: Long): Long {
@@ -327,9 +320,9 @@ class MP4Builder {
         var lastOffset: Long
         var lastChunkNumber = 1
         var lastSampleCount = 0
-        var previousWritedChunkCount = -1
-        val samplesCount = track.getSamples().size
+        var previousWrittenChunkCount = -1
 
+        val samplesCount = track.getSamples().size
         for (a in 0 until samplesCount) {
             val sample = track.getSamples()[a]
             val offset = sample.offset
@@ -349,14 +342,14 @@ class MP4Builder {
             }
 
             if (write) {
-                if (previousWritedChunkCount != lastSampleCount) {
+                if (previousWrittenChunkCount != lastSampleCount) {
                     stsc.entries.add(
                         SampleToChunkBox.Entry(
                             lastChunkNumber.toLong(),
                             lastSampleCount.toLong(), 1
                         )
                     )
-                    previousWritedChunkCount = lastSampleCount
+                    previousWrittenChunkCount = lastSampleCount
                 }
                 lastSampleCount = 0
                 lastChunkNumber++

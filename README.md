@@ -14,11 +14,10 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 0.9.9
+# What's new in 1.0.0
 
-- **BREAKING**: Renamed isMinBitRateEnabled to isMinBitrateCheckEnabled
- - Passing frameRate value to the compressor is now allowed
- - Redefined the bitrate values for each of the Qualities
+- Disabling Audio is possible now by passing **disableAudio: true** in Configuration.
+- Bugs fixes.
 
 
 ## How it works
@@ -114,6 +113,8 @@ The method has a callback for 5 functions;
 
 - videoBitrate: any custom bitrate value
 
+- disableAudio: true/false to generate a video without audio. False by default.
+
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
@@ -158,7 +159,8 @@ VideoCompressor.start(
       quality = VideoQuality.MEDIUM,
       frameRate = 24, /*Int, ignore, or null*/
       isMinBitrateCheckEnabled = true,
-      videoBitrate = 3677198 /*Int, ignore, or null*/
+      videoBitrate = 3677198, /*Int, ignore, or null*/
+      disableAudio = false, /*Boolean, or ignore*/
    )
 )
 ```
@@ -206,13 +208,18 @@ VideoCompressor.start(
         VideoQuality.MEDIUM,
         24, /*frameRate: int, or null*/
         false,
-        null /*videoBitrate: int, or null*/
+        null, /*videoBitrate: int, or null*/
+        false, /*disableAudio: Boolean, or true or false*/
     )
 );
 ```
 
 ## Common issues
-You cannot call Toast.makeText() and other functions dealing with the UI directly in onProgress() which is a worker thread. They need to be called
+
+- Sending the video to whatsapp when disableAudio = false, won't succeed [ at least for now ]. Whatsapp's own compression does not work with
+LightCompressor library. You can send the video as document.
+
+- You cannot call Toast.makeText() and other functions dealing with the UI directly in onProgress() which is a worker thread. They need to be called
 from within the main thread. Have a look at the example code above for more information.
 
 ## Reporting issues
@@ -256,7 +263,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:0.9.9'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.0.0'
 ```
 
 ## Getting help

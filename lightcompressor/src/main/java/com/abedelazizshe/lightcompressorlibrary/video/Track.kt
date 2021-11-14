@@ -45,7 +45,8 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             22050 to 0x7,
             16000 to 0x8,
             12000 to 0x9,
-            11025 to 0xa
+            11025 to 0xa,
+            8000 to 0xb,
         )
 
         trackId = id.toLong()
@@ -61,10 +62,8 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             sampleDescriptionBox = SampleDescriptionBox()
             val mime = format.getString(MediaFormat.KEY_MIME)
             if (mime == "video/avc") {
-                val visualSampleEntry = VisualSampleEntry(VisualSampleEntry.TYPE3)
-                visualSampleEntry.width = width
-                visualSampleEntry.height = height
-                visualSampleEntry.compressorname = "AVC Coding"
+                val visualSampleEntry =
+                    VisualSampleEntry(VisualSampleEntry.TYPE3).setup(width, height)
 
                 val avcConfigurationBox = AvcConfigurationBox()
                 if (format.getByteBuffer("csd-0") != null) {
@@ -194,9 +193,8 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
                 sampleDescriptionBox.addBox(visualSampleEntry)
 
             } else if (mime == "video/mp4v") {
-                val visualSampleEntry = VisualSampleEntry(VisualSampleEntry.TYPE1)
-                visualSampleEntry.width = width
-                visualSampleEntry.height = height
+                val visualSampleEntry =
+                    VisualSampleEntry(VisualSampleEntry.TYPE1).setup(width, height)
                 sampleDescriptionBox.addBox(visualSampleEntry)
             }
         } else {
@@ -207,10 +205,7 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             handler = "soun"
             sampleDescriptionBox = SampleDescriptionBox()
 
-            val audioSampleEntry = AudioSampleEntry(AudioSampleEntry.TYPE3)
-            audioSampleEntry.channelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-            audioSampleEntry.sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE).toLong()
-            audioSampleEntry.sampleSize = 16
+            val audioSampleEntry = AudioSampleEntry(AudioSampleEntry.TYPE3).setup(format)
 
             val esds = ESDescriptorBox()
 
@@ -221,26 +216,7 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
             slConfigDescriptor.predefined = 2
             descriptor.slConfigDescriptor = slConfigDescriptor
 
-            val mime: String? = if (format.containsKey("mime")) {
-                format.getString("mime")
-            } else {
-                "audio/mp4-latm"
-            }
-            val decoderConfigDescriptor = DecoderConfigDescriptor()
-            if ("audio/mpeg" == mime) {
-                decoderConfigDescriptor.objectTypeIndication = 0x69
-            } else {
-                decoderConfigDescriptor.objectTypeIndication = 0x40
-            }
-            decoderConfigDescriptor.streamType = 5
-            decoderConfigDescriptor.bufferSizeDB = 1536
-            if (format.containsKey("max-bitrate")) {
-                decoderConfigDescriptor.maxBitRate = format.getInteger("max-bitrate").toLong()
-                decoderConfigDescriptor.avgBitRate = 192000
-            } else {
-                decoderConfigDescriptor.maxBitRate = 96000
-                decoderConfigDescriptor.avgBitRate = 96000
-            }
+            val decoderConfigDescriptor = DecoderConfigDescriptor().setup()
 
             val audioSpecificConfig = AudioSpecificConfig()
             audioSpecificConfig.setAudioObjectType(2)
@@ -262,16 +238,12 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
     fun getTrackId(): Long = trackId
 
     fun addSample(offset: Long, bufferInfo: MediaCodec.BufferInfo) {
-        val isSyncFrame = !isAudio && bufferInfo.flags and MediaCodec.BUFFER_FLAG_SYNC_FRAME != 0
+        val isSyncFrame = !isAudio && bufferInfo.flags and MediaCodec.BUFFER_FLAG_KEY_FRAME != 0
 
-        samples.add(
-            Sample(
-                offset,
-                bufferInfo.size.toLong()
-            )
-        )
+        samples.add(Sample(offset, bufferInfo.size.toLong()))
+
         if (syncSamples != null && isSyncFrame) {
-            syncSamples!!.add(samples.size)
+            syncSamples?.add(samples.size)
         }
         var delta = bufferInfo.presentationTimeUs - lastPresentationTimeUs
         lastPresentationTimeUs = bufferInfo.presentationTimeUs
@@ -315,4 +287,30 @@ class Track(id: Int, format: MediaFormat, audio: Boolean) {
     fun getSampleDurations(): ArrayList<Long> = sampleDurations
 
     fun isAudio(): Boolean = isAudio
+
+    private fun DecoderConfigDescriptor.setup(): DecoderConfigDescriptor = apply {
+        objectTypeIndication = 0x40
+        streamType = 5
+        bufferSizeDB = 1536
+        maxBitRate = 96000
+        avgBitRate = 96000
+    }
+
+    private fun VisualSampleEntry.setup(w: Int, h: Int): VisualSampleEntry = apply {
+        dataReferenceIndex = 1
+        depth = 24
+        frameCount = 1
+        horizresolution = 72.0
+        vertresolution = 72.0
+        width = w
+        height = h
+        compressorname = "AVC Coding"
+    }
+
+    private fun AudioSampleEntry.setup(format: MediaFormat): AudioSampleEntry = apply {
+        channelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+        sampleRate = 48000
+        dataReferenceIndex = 1
+        sampleSize = 16
+    }
 }
