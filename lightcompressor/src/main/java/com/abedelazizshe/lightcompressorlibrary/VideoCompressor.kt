@@ -36,10 +36,10 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * [Configuration.quality] to allow choosing a video quality that can be [VideoQuality.LOW],
      * [VideoQuality.MEDIUM], [VideoQuality.HIGH], and [VideoQuality.VERY_HIGH].
      * This defaults to [VideoQuality.MEDIUM]
-     * [Configuration.isMinBitRateEnabled] to determine if the checking for a minimum bitrate threshold
+     * [Configuration.isMinBitrateCheckEnabled] to determine if the checking for a minimum bitrate threshold
      * before compression is enabled or not. This default to `true`
      * [Configuration.videoBitrate] which is a custom bitrate for the video. You might consider setting
-     * [Configuration.isMinBitRateEnabled] to `false` if your bitrate is less than 2000000.
+     * [Configuration.isMinBitrateCheckEnabled] to `false` if your bitrate is less than 2000000.
      */
     @JvmStatic
     @JvmOverloads
