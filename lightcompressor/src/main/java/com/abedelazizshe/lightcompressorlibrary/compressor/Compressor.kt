@@ -139,10 +139,9 @@ object Compressor {
             else configuration.videoBitrate!!
 
         //Handle new width and height values
-        var (newWidth, newHeight) = generateWidthAndHeight(
-            width,
-            height
-        )
+        var (newWidth, newHeight) =
+            if (configuration.forcedVideoWidthHeight == null) generateWidthAndHeight(width, height)
+            else configuration.forcedVideoWidthHeight!!
 
         //Handle rotation values and swapping height and width if needed
         rotation = when (rotation) {
