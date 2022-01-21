@@ -1,8 +1,6 @@
 package com.abedelazizshe.lightcompressorlibrary.utils
 
-import android.content.Context
 import android.media.*
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -18,27 +16,6 @@ object CompressorUtils {
 
     // 10 seconds between I-frames
     private const val I_FRAME_INTERVAL = 10
-
-    fun validateInputs(
-        context: Context?,
-        srcUri: Uri?,
-        srcPath: String?,
-    ): String? {
-
-        if (srcPath != null && srcUri != null) {
-            Log.w("Compressor", "ARE YOU SURE YOU WANT TO PASS BOTH srcPath AND srcUri?")
-        }
-
-        if (context == null && srcPath == null && srcUri == null) {
-            return "You need to provide either a srcUri or a srcPath"
-        }
-
-        if (context == null && srcPath == null && srcUri != null) {
-            return "You need to provide the application context"
-        }
-
-        return null
-    }
 
     fun prepareVideoWidth(
         mediaMetadataRetriever: MediaMetadataRetriever,
@@ -220,8 +197,13 @@ object CompressorUtils {
      */
     fun generateWidthAndHeight(
         width: Double,
-        height: Double
+        height: Double,
+        keepOriginalResolution: Boolean,
     ): Pair<Int, Int> {
+
+        if (keepOriginalResolution) {
+            return Pair(width.roundToInt(), height.roundToInt())
+        }
 
         val newWidth: Int
         val newHeight: Int

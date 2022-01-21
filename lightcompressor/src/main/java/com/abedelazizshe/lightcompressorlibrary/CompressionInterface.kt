@@ -9,10 +9,10 @@ import androidx.annotation.WorkerThread
  */
 interface CompressionListener {
     @MainThread
-    fun onStart()
+    fun onStart(size: Long)
 
     @MainThread
-    fun onSuccess()
+    fun onSuccess(size: Long, path: String?)
 
     @MainThread
     fun onFailure(failureMessage: String)

@@ -8,5 +8,7 @@ data class Configuration(
     var isMinBitrateCheckEnabled: Boolean = true,
     var videoBitrate: Int? = null,
     var disableAudio: Boolean = false,
-    var forcedVideoWidthHeight: Pair<Int, Int>? = null
+    val keepOriginalResolution: Boolean = false,
+    var videoHeight: Double? = null,
+    var videoWidth: Double? = null,
 )

@@ -19,8 +19,8 @@
         <ImageView
             android:id="@+id/videoImage"
             android:layout_width="wrap_content"
-            android:layout_height="240dp"
-            android:minWidth="240dp"
+            android:layout_height="150dp"
+            android:minWidth="150dp"
             android:scaleType="centerCrop"
             tools:background="@tools:sample/avatars" />
 

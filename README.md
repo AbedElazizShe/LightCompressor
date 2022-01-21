@@ -6,7 +6,7 @@
 LightCompressor can now be used in Flutter through [light_compressor](https://pub.dev/packages/light_compressor) plugin.
 
 A powerful and easy-to-use video compression library for android uses [MediaCodec](https://developer.android.com/reference/android/media/MediaCodec) API. This library generates a compressed MP4 video with a modified width, height, and bitrate (the number of bits per
-seconds that determines the video and audio files’ size and quality). It is based on Telegram for Android source code.
+seconds that determines the video and audio files’ size and quality). It is based on Telegram for Android project.
 
 The general idea of how the library works is that, extreme high bitrate is reduced while maintaining a good video quality resulting in a smaller size.
 
@@ -14,10 +14,16 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 1.0.1
+# What's new in 1.1.0
 
-- Migrated to gradle version 7.0.4
-- Increased the target SDK to 31
+- **Breaking** srcPath is no longer allowed, only video uri is allowed.
+- **Breaking** You should pass a list of uris now.
+- **Breaking** You should pass the directory you wish to save the output videos in. e.g. saveAt: Environment.DIRECTORY_MOVIES.
+- **Breaking** No need to pass destPath or streamableFile anymore, only saveAt.
+- **Breaking** Passing context is required now.
+- It is possible to pass custom width and height or ask the library to keep the original height and width.
+- It is possible to compress multiple videos.
+- It is possible to pass isStreamable flag to ensure the video is prepared for streaming.
 
 
 ## How it works
@@ -54,7 +60,7 @@ when {
 }
 ```
 
-You can as well pass custom frameRate and videoBitrate values if you don't want the library to auto-generate the values for you.
+You can as well pass custom videoHeight, videoWidth, frameRate, and videoBitrate values if you don't want the library to auto-generate the values for you. **The compression will fail if height or width is specified without the other, so ensure you pass both values**.
 
 These values were tested on a huge set of videos and worked fine and fast with them. They might be changed based on the project needs and expectations.
 
@@ -88,13 +94,10 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutin
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
 
-Then just call [VideoCompressor.start()] and pass both source and destination file paths.
+Then just call [VideoCompressor.start()] and pass context, uris, and saveAt directory name.
 
-**NOTE**: The source video can be provided as a string path or a content uri. If both [srcPath] and
-[srcUri] are provided, [srcUri] will be ignored. Passing [srcUri] requires [context].
-
-**NOTE**: If you want an output video that is optimised to be streamed, ensure you pass [streamableFile] path that is different from the [destPath]. Note
-that both are needed - for now -.
+**NOTE**: The source video must be provided as a list of content uris.
+**NOTE**: If you want an output video that is optimised to be streamed, ensure you pass [isStreamable] flag is true.
 
 The method has a callback for 5 functions;
 1) OnStart - called when compression started
@@ -115,6 +118,11 @@ The method has a callback for 5 functions;
 
 - disableAudio: true/false to generate a video without audio. False by default.
 
+- keepOriginalResolution: true/false to tell the library not to change the resolution.
+
+- videoWidth: custom video width.
+
+- videoHeight: custom video height.
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
@@ -122,11 +130,10 @@ To cancel the compression job, just call [VideoCompressor.cancel()]
 
 ```kotlin
 VideoCompressor.start(
-   context = applicationContext, // => This is required if srcUri is provided. If not, it can be ignored or null.
-   srcUri = uri, // => Source can be provided as content uri, it requires context.
-   srcPath = path, // => This could be ignored or null if srcUri and context are provided.
-   destPath = desFile.path,
-   streamableFile = streamableFile, /*String, ignore, or null*/
+   context = applicationContext, // => This is required
+   uris = List<Uri>, // => Source can be provided as content uris
+   isStreamable = true,
+   saveAt = Environment.DIRECTORY_MOVIES, // => the directory to save the compressed video(s)
    listener = object : CompressionListener {
        override fun onProgress(percent: Float) {
           // Update UI with progress value
@@ -138,11 +145,11 @@ VideoCompressor.start(
           }
        }
 
-       override fun onStart() {
+       override fun onStart(size: Long) {
           // Compression start
        }
 
-       override fun onSuccess() {
+       override fun onSuccess(size: Long, path: String?) {
          // On Compression success
        }
 
@@ -161,6 +168,9 @@ VideoCompressor.start(
       isMinBitrateCheckEnabled = true,
       videoBitrate = 3677198, /*Int, ignore, or null*/
       disableAudio = false, /*Boolean, or ignore*/
+      keepOriginalResolution = false, /*Boolean, or ignore*/
+      videoWidth = 360.0, /*Double, ignore, or null*/
+      videoHeight = 480.0 /*Double, ignore, or null*/
    )
 )
 ```
@@ -168,19 +178,18 @@ VideoCompressor.start(
 
 ```java
  VideoCompressor.start(
-    applicationContext, // => This is required if srcUri is provided. If not, pass null.
-    uri, // => Source can be provided as content uri, it requires context.
-    path, // => This could be null if srcUri and context are provided.
-    desFile.path,
-    streamableFile.path, /*String, or null*/
+    applicationContext, // => This is required
+    new ArrayList<Uri>(), // => Source can be provided as content uris
+    false, // => isStreamable
+    Environment.DIRECTORY_DOWNLOADS, // => the directory to save the compressed video(s)
     new CompressionListener() {
        @Override
-       public void onStart() {
+       public void onStart(long size) {
          // Compression start
        }
 
        @Override
-       public void onSuccess() {
+       public void onSuccess(long size, @Nullable String path) {
          // On Compression success
        }
 
@@ -190,7 +199,7 @@ VideoCompressor.start(
        }
 
        @Override
-       public void onProgress(float v) {
+       public void onProgress(float progressPercent) {
          // Update UI with progress value
          runOnUiThread(new Runnable() {
             public void run() {
@@ -207,9 +216,12 @@ VideoCompressor.start(
     }, new Configuration(
         VideoQuality.MEDIUM,
         24, /*frameRate: int, or null*/
-        false,
+        false, /*isMinBitrateCheckEnabled*/
         null, /*videoBitrate: int, or null*/
-        false, /*disableAudio: Boolean, or true or false*/
+        false, /*disableAudio: Boolean, or null*/
+        false, /*keepOriginalResolution: Boolean, or null*/
+        360.0, /*videoWidth: Double, or null*/
+        480.0 /*videoHeight: Double, or null*/
     )
 );
 ```
@@ -226,7 +238,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.0.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1lWpXDq-poAKu3dOUzIDuqAwClNkL9uzh/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 1.1.0) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1o36mb8nZ89RC7AAM6QW7YGPykD6VV4fS/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -263,7 +275,20 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.0.1'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.1.0'
+```
+
+If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:
+
+```
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
 ```
 
 ## Getting help

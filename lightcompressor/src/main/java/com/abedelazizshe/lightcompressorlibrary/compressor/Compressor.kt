@@ -16,7 +16,6 @@ import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.prepareVid
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.printException
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setOutputFileParameters
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setUpMP4Movie
-import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.validateInputs
 import com.abedelazizshe.lightcompressorlibrary.utils.StreamableVideo
 import com.abedelazizshe.lightcompressorlibrary.video.*
 import java.io.File
@@ -40,6 +39,7 @@ object Compressor {
     private lateinit var compressionProgressListener: CompressionProgressListener
     private var duration: Long = 0
     private var rotation: Int = 0
+    private var resultFile: File? = null
 
     private const val INVALID_BITRATE =
         "The provided bitrate is smaller than what is needed for compression " +
@@ -48,9 +48,8 @@ object Compressor {
     var isRunning = true
 
     fun compressVideo(
-        context: Context?,
-        srcUri: Uri?,
-        srcPath: String?,
+        context: Context,
+        srcUri: Uri,
         destination: String,
         streamableFile: String?,
         configuration: Configuration,
@@ -62,45 +61,17 @@ object Compressor {
         // Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
 
-        validateInputs(context, srcUri, srcPath)?.let {
+        try {
+            mediaMetadataRetriever.setDataSource(context, srcUri)
+        } catch (exception: IllegalArgumentException) {
+            printException(exception)
             return Result(
                 success = false,
-                failureMessage = it
+                failureMessage = "${exception.message}"
             )
         }
 
-        if (context != null && srcUri != null && srcPath == null) {
-
-            try {
-                mediaMetadataRetriever.setDataSource(context, srcUri)
-            } catch (exception: IllegalArgumentException) {
-                printException(exception)
-                return Result(
-                    success = false,
-                    failureMessage = "${exception.message}"
-                )
-            }
-
-            extractor.setDataSource(context, srcUri, null)
-        } else {
-            try {
-                mediaMetadataRetriever.setDataSource(srcPath)
-            } catch (exception: IllegalArgumentException) {
-                printException(exception)
-                return Result(
-                    success = false,
-                    failureMessage = "${exception.message}"
-                )
-            }
-
-            val file = File(srcPath!!)
-            if (!file.canRead()) return Result(
-                success = false,
-                failureMessage = "The source file cannot be accessed!"
-            )
-
-            extractor.setDataSource(file.toString())
-        }
+        extractor.setDataSource(context, srcUri, null)
 
         val height: Double = prepareVideoHeight(mediaMetadataRetriever)
 
@@ -139,9 +110,15 @@ object Compressor {
             else configuration.videoBitrate!!
 
         //Handle new width and height values
-        var (newWidth, newHeight) =
-            if (configuration.forcedVideoWidthHeight == null) generateWidthAndHeight(width, height)
-            else configuration.forcedVideoWidthHeight!!
+        var (newWidth, newHeight) = if (configuration.videoHeight != null) Pair(
+            configuration.videoWidth?.toInt(),
+            configuration.videoHeight?.toInt()
+        )
+        else generateWidthAndHeight(
+            width,
+            height,
+            configuration.keepOriginalResolution
+        )
 
         //Handle rotation values and swapping height and width if needed
         rotation = when (rotation) {
@@ -156,8 +133,8 @@ object Compressor {
         }
 
         return start(
-            newWidth,
-            newHeight,
+            newWidth!!,
+            newHeight!!,
             destination,
             newBitrate,
             streamableFile,
@@ -418,9 +395,12 @@ object Compressor {
                 printException(exception)
             }
 
+            resultFile = cacheFile
+
             streamableFile?.let {
                 try {
                     val result = StreamableVideo.start(`in` = cacheFile, out = File(it))
+                    resultFile = File(it)
                     if (result && cacheFile.exists()) {
                         cacheFile.delete()
                     }
@@ -429,7 +409,12 @@ object Compressor {
                     printException(e)
                 }
             }
-            return Result(success = true, failureMessage = null)
+            return Result(
+                success = true,
+                failureMessage = null,
+                size = resultFile?.length() ?: 0,
+                resultFile?.path
+            )
         }
 
         return Result(success = false, failureMessage = "Something went wrong, please try again")

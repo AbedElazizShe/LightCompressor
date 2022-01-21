@@ -5,6 +5,16 @@
       <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
     </configurations>
   </component>
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/AndroidStudioProjects/VideoCompressor/app/src/main/res/layout/activity_main.xml" value="0.17831813576494426" />
+        <entry key="..\:/AndroidStudioProjects/VideoCompressor/app/src/main/res/layout/activity_video_player.xml" value="0.3641304347826087" />
+        <entry key="..\:/AndroidStudioProjects/VideoCompressor/app/src/main/res/layout/content_main.xml" value="0.3641304347826087" />
+        <entry key="..\:/AndroidStudioProjects/VideoCompressor/app/src/main/res/layout/recycler_view_item.xml" value="0.3641304347826087" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="JDK" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>

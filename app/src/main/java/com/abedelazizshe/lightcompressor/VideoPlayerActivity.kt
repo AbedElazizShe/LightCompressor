@@ -1,6 +1,7 @@
 package com.abedelazizshe.lightcompressor
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -25,10 +26,10 @@ class VideoPlayerActivity : AppCompatActivity() {
     private var uri = ""
 
     companion object {
-        fun start(activity: Activity, uri: String) {
-            val intent = Intent(activity, VideoPlayerActivity::class.java)
+        fun start(context: Context, uri: String?) {
+            val intent = Intent(context, VideoPlayerActivity::class.java)
                 .putExtra("uri", uri)
-            activity.startActivity(intent)
+            context.startActivity(intent)
         }
     }
 
