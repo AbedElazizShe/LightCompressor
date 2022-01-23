@@ -14,7 +14,7 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 1.1.0
+# What's new in 1.1.1
 
 - **Breaking** srcPath is no longer allowed, only video uri is allowed.
 - **Breaking** You should pass a list of uris now.
@@ -24,7 +24,8 @@ I would like to mention that the set attributes for size and quality worked just
 - It is possible to pass custom width and height or ask the library to keep the original height and width.
 - It is possible to compress multiple videos.
 - It is possible to pass isStreamable flag to ensure the video is prepared for streaming.
-
+- OnStart, OnSuccess, OnFailure, OnProgress, and OnCancelled return an index position for the video being compressed, this index matches the order of the urls list passed to the library.
+- OnSuccess returns the new size and the path of the video after compression.
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
@@ -96,15 +97,19 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.corou
 
 Then just call [VideoCompressor.start()] and pass context, uris, and saveAt directory name.
 
-**NOTE**: The source video must be provided as a list of content uris.
-**NOTE**: If you want an output video that is optimised to be streamed, ensure you pass [isStreamable] flag is true.
-
 The method has a callback for 5 functions;
 1) OnStart - called when compression started
 2) OnSuccess - called when compression completed with no errors/exceptions
 3) OnFailure - called when an exception occurred or video bitrate and size are below the minimum required for compression.
 4) OnProgress - called with progress new value
 5) OnCancelled - called when the job is cancelled
+
+### Important Notes:
+
+- All the callback functions returns an index for the video being compressed in the same order of the urls passed to the library. You can use this index to update the UI
+or retrieve information about the original uri/file.
+- The source video must be provided as a list of content uris.
+- If you want an output video that is optimised to be streamed, ensure you pass [isStreamable] flag is true.
 
 ### Configuration values
 
@@ -135,29 +140,25 @@ VideoCompressor.start(
    isStreamable = true,
    saveAt = Environment.DIRECTORY_MOVIES, // => the directory to save the compressed video(s)
    listener = object : CompressionListener {
-       override fun onProgress(percent: Float) {
+       override fun onProgress(index: Int, percent: Float) {
           // Update UI with progress value
           runOnUiThread {
-             // update a text view
-             progress.text = "${percent.toLong()}%"
-             // update a progress bar
-             progressBar.progress = percent.toInt()
           }
        }
 
-       override fun onStart(size: Long) {
+       override fun onStart(index: Int) {
           // Compression start
        }
 
-       override fun onSuccess(size: Long, path: String?) {
+       override fun onSuccess(index: Int, size: Long, path: String?) {
          // On Compression success
        }
 
-       override fun onFailure(failureMessage: String) {
+       override fun onFailure(index: Int, failureMessage: String) {
          // On Failure
        }
 
-       override fun onCancelled() {
+       override fun onCancelled(index: Int) {
          // On Cancelled
        }
 
@@ -184,33 +185,31 @@ VideoCompressor.start(
     Environment.DIRECTORY_DOWNLOADS, // => the directory to save the compressed video(s)
     new CompressionListener() {
        @Override
-       public void onStart(long size) {
+       public void onStart(int index, long size) {
          // Compression start
        }
 
        @Override
-       public void onSuccess(long size, @Nullable String path) {
+       public void onSuccess(int index, @Nullable String path) {
          // On Compression success
        }
 
        @Override
-       public void onFailure(String failureMessage) {
+       public void onFailure(int index, String failureMessage) {
          // On Failure
        }
 
        @Override
-       public void onProgress(float progressPercent) {
+       public void onProgress(int index, float progressPercent) {
          // Update UI with progress value
          runOnUiThread(new Runnable() {
             public void run() {
-                progress.setText(progressPercent + "%");
-                progressBar.setProgress((int) progressPercent);
            }
          });
        }
 
        @Override
-       public void onCancelled() {
+       public void onCancelled(int index) {
          // On Cancelled
        }
     }, new Configuration(
@@ -238,17 +237,10 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.1.0) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1o36mb8nZ89RC7AAM6QW7YGPykD6VV4fS/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 1.1.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/112gWNotTBl-0tp_tvFTyaHxM8Y_UIPIV/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
-
-## Performance
-This method was tested on Pixel, Huawei, Xiaomi, Samsung and Nokia phones and more than 150 videos.
-Here’s some results from pixel 2 XL (medium quality);
-* 94.3MB compressed to 9.2MB in 11 seconds
-* 151.2MB compressed to 14.7MB in 18 seconds
-* 65.7MB compressed to 6.4MB in 8 seconds
 
 ## How to add to your project?
 #### Gradle
@@ -275,7 +267,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.1.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.1.1'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

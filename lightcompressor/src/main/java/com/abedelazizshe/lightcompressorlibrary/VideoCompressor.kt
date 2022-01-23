@@ -61,7 +61,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         listener: CompressionListener,
         configureWith: Configuration,
     ) {
-        job = doVideoCompression(
+       doVideoCompression(
             context,
             uris,
             isStreamable,
@@ -87,62 +87,68 @@ object VideoCompressor : CoroutineScope by MainScope() {
         saveAt: String?,
         configuration: Configuration,
         listener: CompressionListener,
-    ) = launch {
+    ) {
         var streamableFile: File? = null
-        for (uri in uris) {
+        for (i in uris.indices) {
 
-            val job = async { getMediaPath(context, uri) }
-            val path = job.await()
+            job = launch {
 
-            val desFile = saveVideoFile(context, path, saveAt)
+                val job = async { getMediaPath(context, uris[i]) }
+                val path = job.await()
 
-            if (isStreamable)
-                streamableFile = saveVideoFile(context, path, saveAt)
+                val desFile = saveVideoFile(context, path, saveAt)
 
-            desFile?.let {
-                isRunning = true
-                listener.onStart(File(path).length())
-                val result = startCompression(
-                    context,
-                    uri,
-                    // srcPath,
-                    desFile.path,
-                    streamableFile?.path,
-                    configuration,
-                    listener,
-                )
+                if (isStreamable)
+                    streamableFile = saveVideoFile(context, path, saveAt)
 
-                // Runs in Main(UI) Thread
-                if (result.success) {
-                    listener.onSuccess(result.size, result.path)
-                } else {
-                    listener.onFailure(result.failureMessage ?: "An error has occurred!")
+                desFile?.let {
+                    isRunning = true
+                    listener.onStart(i)
+                    val result = startCompression(
+                        i,
+                        context,
+                        uris[i],
+                        // srcPath,
+                        desFile.path,
+                        streamableFile?.path,
+                        configuration,
+                        listener,
+                    )
+
+                    // Runs in Main(UI) Thread
+                    if (result.success) {
+                        listener.onSuccess(i, result.size, result.path)
+                    } else {
+                        listener.onFailure(i, result.failureMessage ?: "An error has occurred!")
+                    }
                 }
             }
         }
     }
 
     private suspend fun startCompression(
+        index: Int,
         context: Context,
         srcUri: Uri,
         destPath: String,
         streamableFile: String? = null,
         configuration: Configuration,
         listener: CompressionListener,
-    ): Result = withContext(Dispatchers.IO) {
+    ): Result = withContext(Dispatchers.Default) {
         return@withContext compressVideo(
+            index,
             context,
             srcUri,
             destPath,
             streamableFile,
             configuration,
             object : CompressionProgressListener {
-                override fun onProgressChanged(percent: Float) {
-                    listener.onProgress(percent)
+                override fun onProgressChanged(index: Int, percent: Float) {
+                    listener.onProgress(index, percent)
                 }
 
-                override fun onProgressCancelled() {
-                    listener.onCancelled()
+                override fun onProgressCancelled(index: Int) {
+                    listener.onCancelled(index)
                 }
             },
         )

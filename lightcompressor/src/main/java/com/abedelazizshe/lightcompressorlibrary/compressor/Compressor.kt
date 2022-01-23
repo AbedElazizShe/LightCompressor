@@ -18,6 +18,8 @@ import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setOutputF
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setUpMP4Movie
 import com.abedelazizshe.lightcompressorlibrary.utils.StreamableVideo
 import com.abedelazizshe.lightcompressorlibrary.video.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -34,30 +36,23 @@ object Compressor {
     private const val MIME_TYPE = "video/avc"
     private const val MEDIACODEC_TIMEOUT_DEFAULT = 100L
 
-    // MediaExtractor extracts encoded media data from the source
-    private lateinit var extractor: MediaExtractor
-    private lateinit var compressionProgressListener: CompressionProgressListener
-    private var duration: Long = 0
-    private var rotation: Int = 0
-    private var resultFile: File? = null
-
     private const val INVALID_BITRATE =
         "The provided bitrate is smaller than what is needed for compression " +
                 "try to set isMinBitRateEnabled to false"
 
     var isRunning = true
 
-    fun compressVideo(
+    suspend fun compressVideo(
+        index: Int,
         context: Context,
         srcUri: Uri,
         destination: String,
         streamableFile: String?,
         configuration: Configuration,
         listener: CompressionProgressListener,
-    ): Result {
+    ): Result = withContext(Dispatchers.Default) {
 
-        extractor = MediaExtractor()
-        compressionProgressListener = listener
+        val extractor = MediaExtractor()
         // Retrieve the source's metadata to be used as input to generate new values for compression
         val mediaMetadataRetriever = MediaMetadataRetriever()
 
@@ -65,7 +60,8 @@ object Compressor {
             mediaMetadataRetriever.setDataSource(context, srcUri)
         } catch (exception: IllegalArgumentException) {
             printException(exception)
-            return Result(
+            return@withContext Result(
+                index,
                 success = false,
                 failureMessage = "${exception.message}"
             )
@@ -89,20 +85,21 @@ object Compressor {
 
         if (rotationData.isNullOrEmpty() || bitrateData.isNullOrEmpty() || durationData.isNullOrEmpty()) {
             // Exit execution
-            return Result(
+            return@withContext Result(
+                index,
                 success = false,
                 failureMessage = "Failed to extract video meta-data, please try again"
             )
         }
 
-        rotation = rotationData.toInt()
+        var rotation = rotationData.toInt()
         val bitrate = bitrateData.toInt()
-        duration = durationData.toLong() * 1000
+        val duration = durationData.toLong() * 1000
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
         if (configuration.isMinBitrateCheckEnabled && bitrate <= MIN_BITRATE)
-            return Result(success = false, failureMessage = INVALID_BITRATE)
+            return@withContext Result(index, success = false, failureMessage = INVALID_BITRATE)
 
         //Handle new bitrate value
         val newBitrate: Int =
@@ -132,26 +129,36 @@ object Compressor {
             else -> rotation
         }
 
-        return start(
+        return@withContext start(
+            index,
             newWidth!!,
             newHeight!!,
             destination,
             newBitrate,
             streamableFile,
             configuration.frameRate,
-            configuration.disableAudio
+            configuration.disableAudio,
+            extractor,
+            listener,
+            duration,
+            rotation
         )
     }
 
     @Suppress("DEPRECATION")
     private fun start(
+        id: Int,
         newWidth: Int,
         newHeight: Int,
         destination: String,
         newBitrate: Int,
         streamableFile: String?,
         frameRate: Int?,
-        disableAudio: Boolean
+        disableAudio: Boolean,
+        extractor: MediaExtractor,
+        compressionProgressListener: CompressionProgressListener,
+        duration: Long,
+        rotation: Int
     ): Result {
 
         if (newWidth != 0 && newHeight != 0) {
@@ -273,8 +280,18 @@ object Compressor {
                         loop@ while (decoderOutputAvailable || encoderOutputAvailable) {
 
                             if (!isRunning) {
-                                compressionProgressListener.onProgressCancelled()
+                                dispose(
+                                    videoIndex,
+                                    decoder,
+                                    encoder,
+                                    inputSurface,
+                                    outputSurface,
+                                    extractor
+                                )
+
+                                compressionProgressListener.onProgressCancelled(id)
                                 return Result(
+                                    id,
                                     success = false,
                                     failureMessage = "The compression has stopped!"
                                 )
@@ -351,7 +368,10 @@ object Compressor {
 
                                             inputSurface.setPresentationTime(bufferInfo.presentationTimeUs * 1000)
 
-                                            compressionProgressListener.onProgressChanged(bufferInfo.presentationTimeUs.toFloat() / duration.toFloat() * 100)
+                                            compressionProgressListener.onProgressChanged(
+                                                id,
+                                                bufferInfo.presentationTimeUs.toFloat() / duration.toFloat() * 100
+                                            )
 
                                             inputSurface.swapBuffers()
                                         }
@@ -367,7 +387,7 @@ object Compressor {
 
                 } catch (exception: Exception) {
                     printException(exception)
-                    return Result(success = false, failureMessage = exception.message)
+                    return Result(id, success = false, failureMessage = exception.message)
                 }
 
                 dispose(
@@ -376,12 +396,14 @@ object Compressor {
                     encoder,
                     inputSurface,
                     outputSurface,
+                    extractor
                 )
 
                 processAudio(
                     mediaMuxer = mediaMuxer,
                     bufferInfo = bufferInfo,
                     disableAudio = disableAudio,
+                    extractor
                 )
 
                 extractor.release()
@@ -395,7 +417,7 @@ object Compressor {
                 printException(exception)
             }
 
-            resultFile = cacheFile
+            var resultFile = cacheFile
 
             streamableFile?.let {
                 try {
@@ -410,20 +432,26 @@ object Compressor {
                 }
             }
             return Result(
+                id,
                 success = true,
                 failureMessage = null,
-                size = resultFile?.length() ?: 0,
-                resultFile?.path
+                size = resultFile.length(),
+                resultFile.path
             )
         }
 
-        return Result(success = false, failureMessage = "Something went wrong, please try again")
+        return Result(
+            id,
+            success = false,
+            failureMessage = "Something went wrong, please try again"
+        )
     }
 
     private fun processAudio(
         mediaMuxer: MP4Builder,
         bufferInfo: MediaCodec.BufferInfo,
         disableAudio: Boolean,
+        extractor: MediaExtractor
     ) {
         val audioIndex = findTrack(extractor, isVideo = false)
         if (audioIndex >= 0 && !disableAudio) {
@@ -522,6 +550,7 @@ object Compressor {
         encoder: MediaCodec,
         inputSurface: InputSurface,
         outputSurface: OutputSurface,
+        extractor: MediaExtractor
     ) {
         extractor.unselectTrack(videoIndex)
 

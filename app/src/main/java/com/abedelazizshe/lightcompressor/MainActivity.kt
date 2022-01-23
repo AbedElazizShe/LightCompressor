@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.text.format.DateUtils
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -39,8 +38,6 @@ class MainActivity : AppCompatActivity() {
 
     private val uris = mutableListOf<Uri>()
     private val data = mutableListOf<VideoDetailsModel>()
-    private var index = -1
-    private var originalSize = ""
     private lateinit var adapter: RecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,7 +117,6 @@ class MainActivity : AppCompatActivity() {
     private fun reset() {
         uris.clear()
         mainContents.visibility = View.GONE
-        index = -1
         data.clear()
         adapter.notifyDataSetChanged()
     }
@@ -151,66 +147,55 @@ class MainActivity : AppCompatActivity() {
         mainContents.visibility = View.VISIBLE
 
         GlobalScope.launch {
-            var time = 0L
             VideoCompressor.start(
                 context = applicationContext,
                 uris,
                 isStreamable = true,
                 saveAt = Environment.DIRECTORY_MOVIES,
                 listener = object : CompressionListener {
-                    override fun onProgress(percent: Float) {
+                    override fun onProgress(index: Int, percent: Float) {
                         //Update UI
                         if (percent <= 100 && percent.toInt() % 5 == 0)
                             runOnUiThread {
-                                progress.text = "${percent.toLong()}%"
-                                progressBar.progress = percent.toInt()
+                                data[index] = VideoDetailsModel(
+                                    "",
+                                    uris[index],
+                                    "",
+                                    percent
+                                )
+                                adapter.notifyDataSetChanged()
                             }
                     }
 
-                    override fun onStart(size: Long) {
-                        index += 1
-                        time = System.currentTimeMillis()
-                        progress.visibility = View.VISIBLE
-                        progressBar.visibility = View.VISIBLE
-
-                        originalSize = getFileSize(size)
+                    override fun onStart(index: Int) {
                         data.add(
                             index,
-                            VideoDetailsModel("", uris[index], originalSize, "", "")
+                            VideoDetailsModel("", uris[index], "")
                         )
                         adapter.notifyDataSetChanged()
-                        progress.text = ""
-                        progressBar.progress = 0
                     }
 
-                    override fun onSuccess(size: Long, path: String?) {
-                        progress.visibility = View.GONE
-                        progressBar.visibility = View.GONE
-
-                        time = System.currentTimeMillis() - time
+                    override fun onSuccess(index: Int, size: Long, path: String?) {
                         data[index] = VideoDetailsModel(
                             path,
                             uris[index],
-                            originalSize,
                             getFileSize(size),
-                            DateUtils.formatElapsedTime(time / 1000)
+                            100F
                         )
                         adapter.notifyDataSetChanged()
                     }
 
-                    override fun onFailure(failureMessage: String) {
-                        progress.text = failureMessage
+                    override fun onFailure(index: Int, failureMessage: String) {
                         Log.wtf("failureMessage", failureMessage)
                     }
 
-                    override fun onCancelled() {
+                    override fun onCancelled(index: Int) {
                         Log.wtf("TAG", "compression has been cancelled")
                         // make UI changes, cleanup, etc
                     }
                 },
                 configureWith = Configuration(
-                    quality = VideoQuality.HIGH,
-                    frameRate = 24,
+                    quality = VideoQuality.LOW,
                     isMinBitrateCheckEnabled = true,
                 )
             )
