@@ -3,7 +3,6 @@ package com.abedelazizshe.lightcompressor
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -12,6 +11,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -30,15 +30,27 @@ import kotlinx.coroutines.launch
  * elaziz.shehadeh@gmail.com
  */
 class MainActivity : AppCompatActivity() {
-
-    companion object {
-        const val REQUEST_SELECT_VIDEO = 0
-        const val REQUEST_CAPTURE_VIDEO = 1
-    }
-
     private val uris = mutableListOf<Uri>()
-    private val data = mutableListOf<VideoDetailsModel>()
-    private lateinit var adapter: RecyclerViewAdapter
+    private val adapter = RecyclerViewAdapter(mutableListOf()) {
+        VideoPlayerActivity.start(this, it.playableVideoPath)
+    }
+    private val intentPickVideo = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        reset()
+        if (it.resultCode == Activity.RESULT_OK) {
+            if (it.data?.clipData != null) {
+                for (i in 0 until it.data!!.clipData!!.itemCount) {
+                    val videoItem = it.data!!.clipData!!.getItemAt(i)
+                    uris.add(videoItem.uri)
+                }
+                processVideo()
+            } else if (it.data?.data != null) {
+                uris.add(it.data!!.data!!)
+                processVideo()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,67 +70,34 @@ class MainActivity : AppCompatActivity() {
             VideoCompressor.cancel()
         }
 
-        val recyclerview = findViewById<RecyclerView>(R.id.recyclerview)
-        recyclerview.layoutManager = LinearLayoutManager(this)
-        adapter = RecyclerViewAdapter(applicationContext, data)
-        recyclerview.adapter = adapter
+        findViewById<RecyclerView>(R.id.recyclerview).apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = this@MainActivity.adapter
+        }
     }
 
     //Pick a video file from device
     private fun pickVideo() {
-        val intent = Intent()
-        intent.apply {
+        val intent = Intent().apply {
             type = "video/*"
             action = Intent.ACTION_PICK
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         }
-        intent.putExtra(
-            Intent.EXTRA_ALLOW_MULTIPLE,
-            true
-        )
-        startActivityForResult(Intent.createChooser(intent, "Select video"), REQUEST_SELECT_VIDEO)
+        intentPickVideo.launch(Intent.createChooser(intent, "Select video"))
     }
 
     private fun dispatchTakeVideoIntent() {
         Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
             takeVideoIntent.resolveActivity(packageManager)?.also {
-                startActivityForResult(takeVideoIntent, REQUEST_CAPTURE_VIDEO)
+                intentPickVideo.launch(takeVideoIntent)
             }
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-
-        reset()
-
-        if (resultCode == Activity.RESULT_OK)
-            if (requestCode == REQUEST_SELECT_VIDEO || requestCode == REQUEST_CAPTURE_VIDEO) {
-                handleResult(intent)
-            }
-
-        super.onActivityResult(requestCode, resultCode, intent)
-    }
-
-    private fun handleResult(data: Intent?) {
-        val clipData: ClipData? = data?.clipData
-        if (clipData != null) {
-            for (i in 0 until clipData.itemCount) {
-                val videoItem = clipData.getItemAt(i)
-                uris.add(videoItem.uri)
-            }
-            processVideo()
-        } else if (data != null && data.data != null) {
-            val uri = data.data
-            uris.add(uri!!)
-            processVideo()
         }
     }
 
     private fun reset() {
         uris.clear()
+        adapter.clear()
         mainContents.visibility = View.GONE
-        data.clear()
-        adapter.notifyDataSetChanged()
     }
 
     private fun setReadStoragePermission() {
@@ -149,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch {
             VideoCompressor.start(
                 context = applicationContext,
-                uris,
+                uris = uris,
                 isStreamable = true,
                 saveAt = Environment.DIRECTORY_MOVIES,
                 listener = object : CompressionListener {
@@ -157,32 +136,20 @@ class MainActivity : AppCompatActivity() {
                         //Update UI
                         if (percent <= 100 && percent.toInt() % 5 == 0)
                             runOnUiThread {
-                                data[index] = VideoDetailsModel(
-                                    "",
-                                    uris[index],
-                                    "",
-                                    percent
-                                )
-                                adapter.notifyDataSetChanged()
+                                adapter.updateItem(index, "", uris[index], "", percent)
                             }
                     }
 
                     override fun onStart(index: Int) {
-                        data.add(
+                        adapter.videos.add(
                             index,
                             VideoDetailsModel("", uris[index], "")
                         )
-                        adapter.notifyDataSetChanged()
+                        adapter.notifyItemInserted(index)
                     }
 
                     override fun onSuccess(index: Int, size: Long, path: String?) {
-                        data[index] = VideoDetailsModel(
-                            path,
-                            uris[index],
-                            getFileSize(size),
-                            100F
-                        )
-                        adapter.notifyDataSetChanged()
+                        adapter.updateItem(index, path, uris[index], getFileSize(size), 100F)
                     }
 
                     override fun onFailure(index: Int, failureMessage: String) {
