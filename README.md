@@ -14,18 +14,11 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 1.1.1
+# What's new in 1.2.0
 
-- **Breaking** srcPath is no longer allowed, only video uri is allowed.
-- **Breaking** You should pass a list of uris now.
-- **Breaking** You should pass the directory you wish to save the output videos in. e.g. saveAt: Environment.DIRECTORY_MOVIES.
-- **Breaking** No need to pass destPath or streamableFile anymore, only saveAt.
-- **Breaking** Passing context is required now.
-- It is possible to pass custom width and height or ask the library to keep the original height and width.
-- It is possible to compress multiple videos.
-- It is possible to pass isStreamable flag to ensure the video is prepared for streaming.
-- OnStart, OnSuccess, OnFailure, OnProgress, and OnCancelled return an index position for the video being compressed, this index matches the order of the urls list passed to the library.
-- OnSuccess returns the new size and the path of the video after compression.
+- **Breaking** You should pass `storageConfiguration` which contains the directory you wish to save the output videos in as **saveAt**, an optional name of the video output as **fileName**, and whether the video output should be saved in app-specific file directory or not as **isExternal**.
+- **Breaking** **frameRate** cannot be passed anymore.
+- Bugs fixes
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
@@ -95,7 +88,7 @@ implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.coroutin
 implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Version.coroutines}"
 ```
 
-Then just call [VideoCompressor.start()] and pass context, uris, and saveAt directory name.
+Then just call [VideoCompressor.start()] and pass context, uris, isStreamable, storageConfiguration, and configureWith.
 
 The method has a callback for 5 functions;
 1) OnStart - called when compression started
@@ -117,8 +110,6 @@ or retrieve information about the original uri/file.
 
 - isMinBitrateCheckEnabled: this means, don't compress if bitrate is less than 2mbps
 
-- frameRate: any fps value
-
 - videoBitrate: any custom bitrate value
 
 - disableAudio: true/false to generate a video without audio. False by default.
@@ -129,6 +120,15 @@ or retrieve information about the original uri/file.
 
 - videoHeight: custom video height.
 
+### Storage Configuration values
+
+- fileName: a custom name for the output video. If ignored, the library will assign a name that is a combination of the video original name with a timestamp.
+
+- isExternal: if passed as false, the video will be saved at app-specific file directory.
+
+- saveAt: the directory where the video should be saved in. The value will be ignored if isExternal is false.
+
+
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
 ### Kotlin
@@ -138,7 +138,20 @@ VideoCompressor.start(
    context = applicationContext, // => This is required
    uris = List<Uri>, // => Source can be provided as content uris
    isStreamable = true,
-   saveAt = Environment.DIRECTORY_MOVIES, // => the directory to save the compressed video(s)
+   storageConfiguration = StorageConfiguration(
+      saveAt = Environment.DIRECTORY_MOVIES, // => the directory to save the compressed video(s). Will be ignored if isExternal = false.
+      isExternal = true, // => false means save at app-specific file directory. Default is true.
+      fileName = "output-video.mp4" // => an optional value for a custom video name.
+   ),
+   configureWith = Configuration(
+      quality = VideoQuality.MEDIUM,
+      isMinBitrateCheckEnabled = true,
+      videoBitrate = 3677198, /*Int, ignore, or null*/
+      disableAudio = false, /*Boolean, or ignore*/
+      keepOriginalResolution = false, /*Boolean, or ignore*/
+      videoWidth = 360.0, /*Double, ignore, or null*/
+      videoHeight = 480.0 /*Double, ignore, or null*/
+   ),
    listener = object : CompressionListener {
        override fun onProgress(index: Int, percent: Float) {
           // Update UI with progress value
@@ -162,17 +175,7 @@ VideoCompressor.start(
          // On Cancelled
        }
 
-   },
-   configureWith = Configuration(
-      quality = VideoQuality.MEDIUM,
-      frameRate = 24, /*Int, ignore, or null*/
-      isMinBitrateCheckEnabled = true,
-      videoBitrate = 3677198, /*Int, ignore, or null*/
-      disableAudio = false, /*Boolean, or ignore*/
-      keepOriginalResolution = false, /*Boolean, or ignore*/
-      videoWidth = 360.0, /*Double, ignore, or null*/
-      videoHeight = 480.0 /*Double, ignore, or null*/
-   )
+   }
 )
 ```
 ### Java
@@ -182,7 +185,20 @@ VideoCompressor.start(
     applicationContext, // => This is required
     new ArrayList<Uri>(), // => Source can be provided as content uris
     false, // => isStreamable
-    Environment.DIRECTORY_DOWNLOADS, // => the directory to save the compressed video(s)
+    new StorageConfiguration(
+       "output-video.mp4" // => an optional value for a custom video name.
+       Environment.DIRECTORY_DOWNLOADS,  // => the directory to save the compressed video(s). Will be ignored if isExternal = false.
+       true // => false means save at app-specific file directory. Default is true.
+    ),
+    new Configuration(
+       VideoQuality.MEDIUM,
+       false, /*isMinBitrateCheckEnabled*/
+       null, /*videoBitrate: int, or null*/
+       false, /*disableAudio: Boolean, or null*/
+       false, /*keepOriginalResolution: Boolean, or null*/
+       360.0, /*videoWidth: Double, or null*/
+       480.0 /*videoHeight: Double, or null*/
+    ),
     new CompressionListener() {
        @Override
        public void onStart(int index, long size) {
@@ -212,16 +228,7 @@ VideoCompressor.start(
        public void onCancelled(int index) {
          // On Cancelled
        }
-    }, new Configuration(
-        VideoQuality.MEDIUM,
-        24, /*frameRate: int, or null*/
-        false, /*isMinBitrateCheckEnabled*/
-        null, /*videoBitrate: int, or null*/
-        false, /*disableAudio: Boolean, or null*/
-        false, /*keepOriginalResolution: Boolean, or null*/
-        360.0, /*videoWidth: Double, or null*/
-        480.0 /*videoHeight: Double, or null*/
-    )
+    }
 );
 ```
 
@@ -237,7 +244,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.1.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/112gWNotTBl-0tp_tvFTyaHxM8Y_UIPIV/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 1.2.0) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1nvUmila7KircK5RcG4KzMgipcAAKDHol/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -267,7 +274,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.1.1'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.2.0'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

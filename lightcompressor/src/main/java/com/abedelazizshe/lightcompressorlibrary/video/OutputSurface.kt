@@ -4,7 +4,6 @@ import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.view.Surface
 
-
 class OutputSurface : OnFrameAvailableListener {
 
     private var mSurfaceTexture: SurfaceTexture? = null

@@ -14,8 +14,8 @@ object CompressorUtils {
     private const val MIN_HEIGHT = 640.0
     private const val MIN_WIDTH = 368.0
 
-    // 10 seconds between I-frames
-    private const val I_FRAME_INTERVAL = 10
+    // 1 second between I-frames
+    private const val I_FRAME_INTERVAL = 1
 
     fun prepareVideoWidth(
         mediaMetadataRetriever: MediaMetadataRetriever,
@@ -67,9 +67,8 @@ object CompressorUtils {
         inputFormat: MediaFormat,
         outputFormat: MediaFormat,
         newBitrate: Int,
-        frameRate: Int?,
     ) {
-        val newFrameRate = getFrameRate(inputFormat, frameRate)
+        val newFrameRate = getFrameRate(inputFormat)
         val iFrameInterval = getIFrameIntervalRate(inputFormat)
         outputFormat.apply {
             setInteger(
@@ -103,8 +102,7 @@ object CompressorUtils {
         }
     }
 
-    private fun getFrameRate(format: MediaFormat, frameRate: Int?): Int {
-        if (frameRate != null) return frameRate
+    private fun getFrameRate(format: MediaFormat): Int {
         return if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) format.getInteger(MediaFormat.KEY_FRAME_RATE)
         else 30
     }

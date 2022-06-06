@@ -21,6 +21,7 @@ import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
+import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -151,7 +152,14 @@ class MainActivity : AppCompatActivity() {
                 context = applicationContext,
                 uris,
                 isStreamable = true,
-                saveAt = Environment.DIRECTORY_MOVIES,
+                storageConfiguration = StorageConfiguration(
+                    saveAt = Environment.DIRECTORY_MOVIES,
+                    isExternal = true,
+                ),
+                configureWith = Configuration(
+                    quality = VideoQuality.LOW,
+                    isMinBitrateCheckEnabled = true,
+                ),
                 listener = object : CompressionListener {
                     override fun onProgress(index: Int, percent: Float) {
                         //Update UI
@@ -194,10 +202,6 @@ class MainActivity : AppCompatActivity() {
                         // make UI changes, cleanup, etc
                     }
                 },
-                configureWith = Configuration(
-                    quality = VideoQuality.LOW,
-                    isMinBitrateCheckEnabled = true,
-                )
             )
         }
     }
