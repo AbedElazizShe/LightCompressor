@@ -132,7 +132,7 @@ class MP4Builder {
     private fun createFileTypeBox(): FileTypeBox {
         // completed list can be found at https://www.ftyps.com/
         val minorBrands = listOf(
-            "isom", "mp42", "3gp4"
+            "isom", "iso2", "mp41"
         )
 
         return FileTypeBox("isom", 0, minorBrands)

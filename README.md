@@ -14,10 +14,11 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 1.2.0
+# What's new in 1.2.1
 
-- **Breaking** You should pass `storageConfiguration` which contains the directory you wish to save the output videos in as **saveAt**, an optional name of the video output as **fileName**, and whether the video output should be saved in app-specific file directory or not as **isExternal**.
-- **Breaking** **frameRate** cannot be passed anymore.
+- **Breaking** videoBitrate was renamed to videoBitrateInMbps. It should be int.
+- Updated README Usage section
+- Updated gradle and target android sdk to 33
 - Bugs fixes
 
 ## How it works
@@ -69,14 +70,32 @@ To use this library, you must add the following permission to allow read and wri
 
 ```xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-android:maxSdkVersion="28"/>
+<uses-permission
+    android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    android:maxSdkVersion="28"
+    tools:ignore="ScopedStorage" />
 ```
 
 **API >= 29**
 
 ```xml
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    android:maxSdkVersion="32"/>
+```
+
+**API >= 33**
+
+```xml
+ <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+```
+
+```kotlin
+
+ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+     // request READ_MEDIA_VIDEO run-time permission
+ } else {
+     // request WRITE_EXTERNAL_STORAGE run-time permission
+ }
 ```
 
 And import the following dependencies to use kotlin coroutines
@@ -110,7 +129,7 @@ or retrieve information about the original uri/file.
 
 - isMinBitrateCheckEnabled: this means, don't compress if bitrate is less than 2mbps
 
-- videoBitrate: any custom bitrate value
+- videoBitrateInMbps: any custom bitrate value in Mbps.
 
 - disableAudio: true/false to generate a video without audio. False by default.
 
@@ -146,7 +165,7 @@ VideoCompressor.start(
    configureWith = Configuration(
       quality = VideoQuality.MEDIUM,
       isMinBitrateCheckEnabled = true,
-      videoBitrate = 3677198, /*Int, ignore, or null*/
+      videoBitrateInMbps = 5, /*Int, ignore, or null*/
       disableAudio = false, /*Boolean, or ignore*/
       keepOriginalResolution = false, /*Boolean, or ignore*/
       videoWidth = 360.0, /*Double, ignore, or null*/
@@ -193,7 +212,7 @@ VideoCompressor.start(
     new Configuration(
        VideoQuality.MEDIUM,
        false, /*isMinBitrateCheckEnabled*/
-       null, /*videoBitrate: int, or null*/
+       5, /*videoBitrateInMbps: int, or null*/
        false, /*disableAudio: Boolean, or null*/
        false, /*keepOriginalResolution: Boolean, or null*/
        360.0, /*videoWidth: Double, or null*/
@@ -244,7 +263,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.2.0) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1nvUmila7KircK5RcG4KzMgipcAAKDHol/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 1.2.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1GXblLAg1hnCa0Ef79iweQGvn1rLOYph8/view?usp=share_link).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -274,7 +293,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.2.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.2.1'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

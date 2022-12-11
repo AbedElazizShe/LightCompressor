@@ -78,6 +78,7 @@ object CompressorUtils {
 
             setInteger(MediaFormat.KEY_FRAME_RATE, newFrameRate)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
+            // expected bps
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
 
             if (Build.VERSION.SDK_INT > 23) {
