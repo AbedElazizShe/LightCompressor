@@ -14,7 +14,7 @@ I would like to mention that the set attributes for size and quality worked just
 
 **LightCompressor is now available in iOS**, have a look at [LightCompressor_iOS](https://github.com/AbedElazizShe/LightCompressor_iOS).
 
-# What's new in 1.2.1
+# What's new in 1.2.2
 
 - **Breaking** videoBitrate was renamed to videoBitrateInMbps. It should be int.
 - Updated README Usage section
@@ -263,7 +263,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.2.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1GXblLAg1hnCa0Ef79iweQGvn1rLOYph8/view?usp=share_link).
+- If the bug/issue exists on the sample app (version 1.2.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1GXblLAg1hnCa0Ef79iweQGvn1rLOYph8/view?usp=share_link).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 21.
@@ -293,7 +293,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.2.1'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.2.2'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

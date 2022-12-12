@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 import androidx.annotation.RequiresApi
 import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.compressVideo
 import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.isRunning
@@ -49,7 +50,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * This defaults to [VideoQuality.MEDIUM]
      * [Configuration.isMinBitrateCheckEnabled] to determine if the checking for a minimum bitrate threshold
      * before compression is enabled or not. This default to `true`
-     * [Configuration.videoBitrate] which is a custom bitrate for the video. You might consider setting
+     * [Configuration.videoBitrateInMbps] which is a custom bitrate for the video. You might consider setting
      * [Configuration.isMinBitrateCheckEnabled] to `false` if your bitrate is less than 2000000.
      *  * [Configuration.keepOriginalResolution] to keep the original video height and width when compressing.
      * This defaults to `false`
@@ -242,10 +243,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
 
-        val collection =
-            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-
-        val fileUri = context.contentResolver.insert(collection, values)
+        val fileUri = context.contentResolver.insert(EXTERNAL_CONTENT_URI, values)
 
         fileUri?.let {
             context.contentResolver.openFileDescriptor(fileUri, "rw")
