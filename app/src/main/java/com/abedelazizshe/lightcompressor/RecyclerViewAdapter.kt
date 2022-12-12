@@ -1,6 +1,6 @@
 package com.abedelazizshe.lightcompressor
 
-import android.content.Context
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +10,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class RecyclerViewAdapter(private val context: Context, private val list: List<VideoDetailsModel>) :
+class RecyclerViewAdapter(
+    val videos: MutableList<VideoDetailsModel>,
+    private val itemOnClick: (VideoDetailsModel) -> Unit
+) :
     RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -21,8 +24,7 @@ class RecyclerViewAdapter(private val context: Context, private val list: List<V
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-
-        val itemsViewModel = list[position]
+        val itemsViewModel = videos[position]
         val newSize = "Size after compression: ${itemsViewModel.newSize}"
         val progress = "${itemsViewModel.progress.toLong()}%"
 
@@ -44,18 +46,24 @@ class RecyclerViewAdapter(private val context: Context, private val list: List<V
             holder.newSize.visibility = View.GONE
         }
 
-        Glide.with(context).load(itemsViewModel.uri).into(holder.videoImage)
+        Glide.with(holder.videoImage.context)
+            .load(itemsViewModel.uri).into(holder.videoImage)
 
         holder.itemView.setOnClickListener {
-            VideoPlayerActivity.start(
-                it.context,
-                itemsViewModel.playableVideoPath
-            )
+            itemOnClick(itemsViewModel)
         }
     }
 
-    override fun getItemCount(): Int {
-        return list.size
+    override fun getItemCount() = videos.size
+
+    fun clear() {
+        notifyItemRangeRemoved(0, videos.size - 1)
+        videos.clear()
+    }
+
+    fun updateItem(index: Int, path: String?, uri: Uri, size: String, percent: Float) {
+        videos[index] = VideoDetailsModel(path, uri, size, percent)
+        notifyItemChanged(index)
     }
 
     class ViewHolder(ItemView: View) : RecyclerView.ViewHolder(ItemView) {
