@@ -7,12 +7,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 import androidx.annotation.RequiresApi
 import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.compressVideo
 import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.isRunning
-import com.abedelazizshe.lightcompressorlibrary.config.Configuration
-import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
+import com.abedelazizshe.lightcompressorlibrary.config.*
 import com.abedelazizshe.lightcompressorlibrary.video.Result
 import kotlinx.coroutines.*
 import java.io.File
@@ -30,17 +28,21 @@ object VideoCompressor : CoroutineScope by MainScope() {
 
     /**
      * This function compresses a given list of [uris] of video files and writes the compressed
-     * video file at [StorageConfiguration.saveAt] directory, based on the
-     * [StorageConfiguration.isExternal] value.
+     * video file at [SharedStorageConfiguration.saveAt] directory, or at [AppSpecificStorageConfiguration.subFolderName]
      *
      * The source videos should be provided content uris.
+     *
+     * Only [sharedStorageConfiguration] or [appSpecificStorageConfiguration] must be specified at a
+     * time. Passing both will throw an Exception.
      *
      * @param [context] the application context.
      * @param [uris] the list of content Uris of the video files.
      * @param [isStreamable] determines if the output video should be prepared for streaming.
-     * @param [storageConfiguration] configuration for the path directory where the compressed
-     * videos will be saved, the name of the file, and whether the save location is external or
-     * internal.
+     * @param [sharedStorageConfiguration] configuration for the path directory where the compressed
+     * videos will be saved, and the name of the file
+     * @param [appSpecificStorageConfiguration] configuration for the path directory where the compressed
+     * videos will be saved, the name of the file, and any sub-folders name. The library won't create the subfolder
+     * and will throw an exception if the subfolder does not exist.
      * @param [listener] a compression listener that listens to compression [CompressionListener.onStart],
      * [CompressionListener.onProgress], [CompressionListener.onFailure], [CompressionListener.onSuccess]
      * and if the compression was [CompressionListener.onCancelled]
@@ -63,15 +65,20 @@ object VideoCompressor : CoroutineScope by MainScope() {
         context: Context,
         uris: List<Uri>,
         isStreamable: Boolean = false,
-        storageConfiguration: StorageConfiguration,
+        sharedStorageConfiguration: SharedStorageConfiguration? = null,
+        appSpecificStorageConfiguration: AppSpecificStorageConfiguration? = null,
         configureWith: Configuration,
         listener: CompressionListener,
     ) {
+        // Only one is allowed
+        assert(sharedStorageConfiguration == null || appSpecificStorageConfiguration == null)
+
         doVideoCompression(
             context,
             uris,
             isStreamable,
-            storageConfiguration,
+            sharedStorageConfiguration,
+            appSpecificStorageConfiguration,
             configureWith,
             listener,
         )
@@ -90,7 +97,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
         context: Context,
         uris: List<Uri>,
         isStreamable: Boolean,
-        storageConfiguration: StorageConfiguration,
+        sharedStorageConfiguration: SharedStorageConfiguration?,
+        appSpecificStorageConfiguration: AppSpecificStorageConfiguration?,
         configuration: Configuration,
         listener: CompressionListener,
     ) {
@@ -102,10 +110,16 @@ object VideoCompressor : CoroutineScope by MainScope() {
                 val job = async { getMediaPath(context, uris[i]) }
                 val path = job.await()
 
-                val desFile = saveVideoFile(context, path, storageConfiguration, isStreamable)
+                val desFile = saveVideoFile(
+                    context, path, sharedStorageConfiguration,
+                    appSpecificStorageConfiguration, isStreamable
+                )
 
                 if (isStreamable)
-                    streamableFile = saveVideoFile(context, path, storageConfiguration, null)
+                    streamableFile = saveVideoFile(
+                        context, path, sharedStorageConfiguration,
+                        appSpecificStorageConfiguration, null
+                    )
 
                 desFile?.let {
                     isRunning = true
@@ -163,43 +177,63 @@ object VideoCompressor : CoroutineScope by MainScope() {
     private fun saveVideoFile(
         context: Context,
         filePath: String?,
-        storageConfiguration: StorageConfiguration,
+        sharedStorageConfiguration: SharedStorageConfiguration?,
+        appSpecificStorageConfiguration: AppSpecificStorageConfiguration?,
         isStreamable: Boolean?
     ): File? {
         filePath?.let {
             val videoFile = File(filePath)
-            val videoFileName =
-                validatedFileName(
-                    storageConfiguration.fileName
-                        ?: "${System.currentTimeMillis()}_${videoFile.name}",
+
+            if (sharedStorageConfiguration != null) {
+                val videoFileName = validatedFileName(
+                    sharedStorageConfiguration.videoName,
                     isStreamable
                 )
-            val folderName = storageConfiguration.saveAt ?: Environment.DIRECTORY_MOVIES
 
-            if (Build.VERSION.SDK_INT >= 30) {
-                if (!storageConfiguration.isExternal) {
-                    return saveVideoInInternal(context, videoFileName, videoFile)
+                val saveLocation =
+                    when (sharedStorageConfiguration.saveAt) {
+                        SaveLocation.downloads -> {
+                            Environment.DIRECTORY_DOWNLOADS
+                        }
+                        SaveLocation.pictures -> {
+                            Environment.DIRECTORY_PICTURES
+                        }
+                        else -> {
+                            Environment.DIRECTORY_MOVIES
+                        }
+                    }
+
+                if (Build.VERSION.SDK_INT >= 30) {
+                    return saveVideoInExternal(context, videoFileName, saveLocation, videoFile)
                 } else {
-                    return saveVideoInExternal(context, videoFileName, folderName, videoFile)
+                    val savePath =
+                        Environment.getExternalStoragePublicDirectory(saveLocation)
+
+                    val desFile = File(savePath, videoFileName)
+
+                    if (desFile.exists())
+                        desFile.delete()
+
+                    try {
+                        desFile.createNewFile()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                    return desFile
                 }
             } else {
-                val savePath =
-                    context.getExternalFilesDir(storageConfiguration.saveAt)
-                        ?: context.getExternalFilesDir(
-                            Environment.DIRECTORY_DOWNLOADS
-                        )
-                val desFile = File(savePath, videoFileName)
+                val videoFileName = validatedFileName(
+                    appSpecificStorageConfiguration!!.videoName,
+                    isStreamable
+                )
 
-                if (desFile.exists())
-                    desFile.delete()
 
-                try {
-                    desFile.createNewFile()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-
-                return desFile
+                return saveVideoInInternal(
+                    context,
+                    videoFileName,
+                    appSpecificStorageConfiguration.subFolderName,
+                    videoFile
+                )
             }
         }
         return null
@@ -208,6 +242,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
     private fun saveVideoInInternal(
         context: Context,
         videoFileName: String,
+        subFolderName: String?,
         videoFile: File
     ): File {
         context.openFileOutput(videoFileName, Context.MODE_PRIVATE)
@@ -222,14 +257,17 @@ object VideoCompressor : CoroutineScope by MainScope() {
 
                 }
             }
-        return File(context.filesDir, videoFileName)
+        val fullPath = if (subFolderName != null) "$subFolderName/$videoFileName"
+        else videoFileName
+
+        return File(context.filesDir, fullPath)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveVideoInExternal(
         context: Context,
         videoFileName: String,
-        folderName: String,
+        saveLocation: String,
         videoFile: File
     ): File? {
         val values = ContentValues().apply {
@@ -239,11 +277,18 @@ object VideoCompressor : CoroutineScope by MainScope() {
                 videoFileName
             )
             put(MediaStore.Images.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Images.Media.RELATIVE_PATH, folderName)
+            put(MediaStore.Images.Media.RELATIVE_PATH, saveLocation)
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
 
-        val fileUri = context.contentResolver.insert(EXTERNAL_CONTENT_URI, values)
+        var collection =
+            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+
+        if (saveLocation == Environment.DIRECTORY_DOWNLOADS) {
+            collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        }
+
+        val fileUri = context.contentResolver.insert(collection, values)
 
         fileUri?.let {
             context.contentResolver.openFileDescriptor(fileUri, "rw")
@@ -311,8 +356,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
     }
 
     private fun validatedFileName(name: String, isStreamable: Boolean?): String {
-        val videoName = if(isStreamable == null || !isStreamable) name
-        else "temp-${name}"
+        val videoName = if (isStreamable == null || !isStreamable) name
+        else "${name}_temp"
 
         if (!videoName.contains("mp4")) return "${videoName}.mp4"
         return videoName

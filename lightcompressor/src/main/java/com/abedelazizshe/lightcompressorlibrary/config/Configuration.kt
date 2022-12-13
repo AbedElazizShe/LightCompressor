@@ -12,8 +12,18 @@ data class Configuration(
     var videoWidth: Double? = null,
 )
 
-data class StorageConfiguration(
-    var fileName: String? = null,
-    var saveAt: String? = null,
-    var isExternal: Boolean = true,
+data class AppSpecificStorageConfiguration(
+    var videoName: String,
+    var subFolderName: String? = null,
 )
+
+data class SharedStorageConfiguration(
+    var videoName: String,
+    var saveAt: SaveLocation? = null,
+)
+
+enum class SaveLocation {
+    pictures,
+    downloads,
+    movies,
+}

@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -22,7 +21,8 @@ import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
-import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
+import com.abedelazizshe.lightcompressorlibrary.config.SaveLocation
+import com.abedelazizshe.lightcompressorlibrary.config.SharedStorageConfiguration
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -166,7 +166,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     @SuppressLint("SetTextI18n")
     private fun processVideo() {
         mainContents.visibility = View.VISIBLE
@@ -175,11 +174,14 @@ class MainActivity : AppCompatActivity() {
             VideoCompressor.start(
                 context = applicationContext,
                 uris,
-                isStreamable = true,
-                storageConfiguration = StorageConfiguration(
-                    saveAt = Environment.DIRECTORY_MOVIES,
-                    isExternal = true,
+                isStreamable = false,
+                sharedStorageConfiguration = SharedStorageConfiguration(
+                    saveAt = SaveLocation.movies,
+                    videoName = "compressed_video"
                 ),
+//                appSpecificStorageConfiguration = AppSpecificStorageConfiguration(
+//                    videoName = "compressed_video",
+//                ),
                 configureWith = Configuration(
                     quality = VideoQuality.LOW,
                     isMinBitrateCheckEnabled = true,
