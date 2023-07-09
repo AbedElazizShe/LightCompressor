@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.abedelazizshe.lightcompressor.databinding.ActivityVideoPlayerBinding
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -12,7 +13,6 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
-import kotlinx.android.synthetic.main.activity_video_player.*
 import java.io.File
 
 /**
@@ -20,6 +20,8 @@ import java.io.File
  * elaziz.shehadeh@gmail.com
  */
 class VideoPlayerActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityVideoPlayerBinding
 
     private lateinit var exoPlayer: SimpleExoPlayer
     private var uri = ""
@@ -34,7 +36,8 @@ class VideoPlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_video_player)
+        binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         intent?.extras?.let {
             uri = it.getString("uri", "")
@@ -61,7 +64,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             .Factory(DefaultDataSourceFactory(this, userAgent))
             .createMediaSource(uri)
 
-        ep_video_view.player = exoPlayer
+        binding.epVideoView.player = exoPlayer
 
         exoPlayer.prepare(mediaSource)
         exoPlayer.playWhenReady = true

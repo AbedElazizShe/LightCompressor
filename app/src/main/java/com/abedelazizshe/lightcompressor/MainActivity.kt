@@ -15,16 +15,16 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.abedelazizshe.lightcompressor.databinding.ActivityMainBinding
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.config.SaveLocation
 import com.abedelazizshe.lightcompressorlibrary.config.SharedStorageConfiguration
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
@@ -32,6 +32,8 @@ import kotlinx.coroutines.launch
  * elaziz.shehadeh@gmail.com
  */
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
 
     companion object {
         const val REQUEST_SELECT_VIDEO = 0
@@ -45,19 +47,21 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         setReadStoragePermission()
 
-        pickVideo.setOnClickListener {
+        binding.pickVideo.setOnClickListener {
             pickVideo()
         }
 
-        recordVideo.setOnClickListener {
+        binding.recordVideo.setOnClickListener {
             dispatchTakeVideoIntent()
         }
 
-        cancel.setOnClickListener {
+        binding.cancel.setOnClickListener {
             VideoCompressor.cancel()
         }
 
@@ -119,7 +123,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun reset() {
         uris.clear()
-        mainContents.visibility = View.GONE
+        binding.mainContents.visibility = View.GONE
         data.clear()
         adapter.notifyDataSetChanged()
     }
@@ -168,28 +172,29 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun processVideo() {
-        mainContents.visibility = View.VISIBLE
+        binding.mainContents.visibility = View.VISIBLE
 
-        GlobalScope.launch {
+        lifecycleScope.launch {
             VideoCompressor.start(
                 context = applicationContext,
                 uris,
                 isStreamable = false,
                 sharedStorageConfiguration = SharedStorageConfiguration(
                     saveAt = SaveLocation.movies,
-                    videoName = "compressed_video"
+                    subFolderName = "my-demo-videos"
                 ),
 //                appSpecificStorageConfiguration = AppSpecificStorageConfiguration(
-//                    videoName = "compressed_video",
+//
 //                ),
                 configureWith = Configuration(
                     quality = VideoQuality.LOW,
+                    videoNames = uris.map { uri -> uri.pathSegments.last() },
                     isMinBitrateCheckEnabled = true,
                 ),
                 listener = object : CompressionListener {
                     override fun onProgress(index: Int, percent: Float) {
                         //Update UI
-                        if (percent <= 100 && percent.toInt() % 5 == 0)
+                        if (percent <= 100)
                             runOnUiThread {
                                 data[index] = VideoDetailsModel(
                                     "",

@@ -16,19 +16,18 @@ I would like to mention that the set attributes for size and quality worked just
 
 # Change Logs
 
-## What's new in 1.2.3
+## What's new in 1.3.0
 
-- **Breaking** `StorageConfiguration` was removed.
-- **Breaking** `AppSpecificStorageConfiguration` can be passed to store the output video in Android's App Specific Storage.
-- **Breaking** `SharedStorageConfiguration` can be passed to store the output video in Android's Primary Storage, it accepts storing at `pictures`, `downloads`, or `movies`.
-- Only one of the configurations can be provided at a time, either `AppSpecificStorageConfiguration` or `SharedStorageConfiguration`.
+- **Breaking** Minimum supported API is 24.
+- **Breaking** AppSpecificStorageConfiguration does not accept `videoName` anymore.
+- **Breaking** SharedStorageConfiguration does not accept `videoName` anymore.
+- **Breaking** Configuration requires a list of names for the videos passed to the library.
+- SharedStorageConfiguration accepts `subFolderName`.
+- Thanks to [mohammadnt](https://github.com/mohammadnt), Fix not playing video on Chrome mobile.
+- Thanks to [hpanahiird](https://github.com/hpanahiird) for probable fixes for issues [#135](https://github.com/AbedElazizShe/LightCompressor/issues/135) and [#137](https://github.com/AbedElazizShe/LightCompressor/issues/137)
+- Bugs fixes for [#151](https://github.com/AbedElazizShe/LightCompressor/issues/151), [#150](https://github.com/AbedElazizShe/LightCompressor/issues/150), [#148](https://github.com/AbedElazizShe/LightCompressor/issues/148), [#147](https://github.com/AbedElazizShe/LightCompressor/issues/147)
+  [#146](https://github.com/AbedElazizShe/LightCompressor/issues/146), [#143](https://github.com/AbedElazizShe/LightCompressor/issues/143), [#136](https://github.com/AbedElazizShe/LightCompressor/issues/136)
 
-# What's new in 1.2.2
-
-- **Breaking** videoBitrate was renamed to videoBitrateInMbps. It should be int.
-- Updated README Usage section
-- Updated gradle and target android sdk to 33
-- Bugs fixes
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
@@ -151,16 +150,12 @@ or retrieve information about the original uri/file.
 
 ### AppSpecificStorageConfiguration Configuration values
 
-- videoName: a custom name for the output video.
+- subFolderName: a subfolder name created in app's specific storage. 
 
-- subFolderName: a subfolder name created in app's specific storage. The library won't create the subfolder and will throw an exception if the subfolder does not exist.
-
-
-### AppSpecificStorageConfiguration Configuration values
-
-- videoName: a custom name for the output video.
+### SharedStorageConfiguration Configuration values
 
 - saveAt: the directory where the video should be saved in. Must be one of the following; [SaveLocation.pictures], [SaveLocation.movies], or [SaveLocation.downloads].
+- subFolderName: a subfolder name created in shared storage. 
 
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
@@ -175,14 +170,14 @@ VideoCompressor.start(
    // THIS STORAGE 
    sharedStorageConfiguration = SharedStorageConfiguration(
        saveAt = SaveLocation.movies, // => default is movies
-       videoName = "compressed_video" // => required name
+       subFolderName = "my-videos" // => optional
    ),
    // OR AND NOT BOTH
    appSpecificStorageConfiguration = AppSpecificStorageConfiguration(
-       videoName = "compressed_video", // => required name
-       subFolderName = "my-videos" // => optional and ONLY if exists
+       subFolderName = "my-videos" // => optional
    ),   
    configureWith = Configuration(
+      videoName = listOf<String>(), /*list of video names, the size should be similar to the passed uris*/
       quality = VideoQuality.MEDIUM,
       isMinBitrateCheckEnabled = true,
       videoBitrateInMbps = 5, /*Int, ignore, or null*/
@@ -230,10 +225,10 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.2.3) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1WZtHN8gG2TaDuuTDKi9wB3B_sT_0SJ4w/view?usp=share_link).
+- If the bug/issue exists on the sample app (version 1.3.0) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1Rgf6vx49jbya4sCJ1WZO-NZ7ciMNDWlM/view?usp=sharing).
 
 ## Compatibility
-Minimum Android SDK: LightCompressor requires a minimum API level of 21.
+Minimum Android SDK: LightCompressor requires a minimum API level of 24.
 
 ## How to add to your project?
 #### Gradle
@@ -260,7 +255,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.2.3'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.3.0'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

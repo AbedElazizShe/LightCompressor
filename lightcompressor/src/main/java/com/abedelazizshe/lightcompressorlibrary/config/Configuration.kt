@@ -10,16 +10,16 @@ data class Configuration(
     val keepOriginalResolution: Boolean = false,
     var videoHeight: Double? = null,
     var videoWidth: Double? = null,
+    var videoNames: List<String>
 )
 
 data class AppSpecificStorageConfiguration(
-    var videoName: String,
     var subFolderName: String? = null,
 )
 
 data class SharedStorageConfiguration(
-    var videoName: String,
     var saveAt: SaveLocation? = null,
+    var subFolderName: String? = null,
 )
 
 enum class SaveLocation {

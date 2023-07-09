@@ -1,9 +1,11 @@
 package com.abedelazizshe.lightcompressorlibrary.utils
 
-import android.media.*
-import android.os.Build
+import android.media.MediaCodecInfo
+import android.media.MediaCodecList
+import android.media.MediaExtractor
+import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.video.Mp4Movie
 import java.io.File
@@ -80,22 +82,25 @@ object CompressorUtils {
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval)
             // expected bps
             setInteger(MediaFormat.KEY_BIT_RATE, newBitrate)
-            setInteger(MediaFormat.KEY_BITRATE_MODE, MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR)
+            setInteger(
+                MediaFormat.KEY_BITRATE_MODE,
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
+            )
 
-            if (Build.VERSION.SDK_INT > 23) {
 
-                getColorStandard(inputFormat)?.let {
-                    setInteger(MediaFormat.KEY_COLOR_STANDARD, it)
-                }
 
-                getColorTransfer(inputFormat)?.let {
-                    setInteger(MediaFormat.KEY_COLOR_TRANSFER, it)
-                }
-
-                getColorRange(inputFormat)?.let {
-                    setInteger(MediaFormat.KEY_COLOR_RANGE, it)
-                }
+            getColorStandard(inputFormat)?.let {
+                setInteger(MediaFormat.KEY_COLOR_STANDARD, it)
             }
+
+            getColorTransfer(inputFormat)?.let {
+                setInteger(MediaFormat.KEY_COLOR_TRANSFER, it)
+            }
+
+            getColorRange(inputFormat)?.let {
+                setInteger(MediaFormat.KEY_COLOR_RANGE, it)
+            }
+
 
             Log.i(
                 "Output file parameters",
@@ -116,7 +121,6 @@ object CompressorUtils {
         else I_FRAME_INTERVAL
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     private fun getColorStandard(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_COLOR_STANDARD)) format.getInteger(
             MediaFormat.KEY_COLOR_STANDARD
@@ -124,7 +128,6 @@ object CompressorUtils {
         else null
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     private fun getColorTransfer(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_COLOR_TRANSFER)) format.getInteger(
             MediaFormat.KEY_COLOR_TRANSFER
@@ -132,7 +135,6 @@ object CompressorUtils {
         else null
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     private fun getColorRange(format: MediaFormat): Int? {
         return if (format.containsKey(MediaFormat.KEY_COLOR_RANGE)) format.getInteger(
             MediaFormat.KEY_COLOR_RANGE
@@ -213,14 +215,17 @@ object CompressorUtils {
                 newWidth = generateWidthHeightValue(width, 0.5)
                 newHeight = generateWidthHeightValue(height, 0.5)
             }
+
             width >= 1280 || height >= 1280 -> {
                 newWidth = generateWidthHeightValue(width, 0.75)
                 newHeight = generateWidthHeightValue(height, 0.75)
             }
+
             width >= 960 || height >= 960 -> {
                 newWidth = generateWidthHeightValue(width, 0.95)
                 newHeight = generateWidthHeightValue(height, 0.95)
             }
+
             else -> {
                 newWidth = generateWidthHeightValue(width, 0.9)
                 newHeight = generateWidthHeightValue(height, 0.9)
