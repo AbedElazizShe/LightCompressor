@@ -16,7 +16,7 @@ I would like to mention that the set attributes for size and quality worked just
 
 # Change Logs
 
-## What's new in 1.3.0
+## What's new in 1.3.1
 
 - **Breaking** Minimum supported API is 24.
 - **Breaking** AppSpecificStorageConfiguration does not accept `videoName` anymore.
@@ -225,7 +225,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.3.0) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1Rgf6vx49jbya4sCJ1WZO-NZ7ciMNDWlM/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 1.3.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1deImkOzB6cNVb6NoRXLcNw-kIMqEEmFB/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 24.
@@ -233,7 +233,7 @@ Minimum Android SDK: LightCompressor requires a minimum API level of 24.
 ## How to add to your project?
 #### Gradle
 
-Ensure Kotlin version is `1.6.0`
+Ensure Kotlin version is `1.8.21`
 
 Include this in your Project-level build.gradle file:
 
@@ -255,7 +255,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.3.0'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.3.1'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

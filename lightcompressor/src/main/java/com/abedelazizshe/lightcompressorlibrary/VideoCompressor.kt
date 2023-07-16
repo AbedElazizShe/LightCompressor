@@ -229,7 +229,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
                         }
                     }
 
-                if (Build.VERSION.SDK_INT >= 30) {
+                if (Build.VERSION.SDK_INT >= 29) {
                     val fullPath =
                         if (sharedStorageConfiguration.subFolderName != null) "$saveLocation/${sharedStorageConfiguration.subFolderName}"
                         else saveLocation
