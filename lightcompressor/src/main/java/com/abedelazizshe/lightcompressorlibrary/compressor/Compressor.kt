@@ -27,23 +27,25 @@ import java.nio.ByteBuffer
  * Created by AbedElaziz Shehadeh on 27 Jan, 2020
  * elaziz.shehadeh@gmail.com
  */
-object Compressor {
+class Compressor {
 
-    // 2Mbps
-    private const val MIN_BITRATE = 2000000
+    companion object {
+        // 2Mbps
+        private const val MIN_BITRATE = 2000000
 
-    // H.264 Advanced Video Coding
-    private const val MIME_TYPE = "video/avc"
-    private const val MEDIACODEC_TIMEOUT_DEFAULT = 100L
+        // H.264 Advanced Video Coding
+        private const val MIME_TYPE = "video/avc"
+        private const val MEDIACODEC_TIMEOUT_DEFAULT = 100L
 
-    private const val INVALID_BITRATE =
-        "The provided bitrate is smaller than what is needed for compression " +
-                "try to set isMinBitRateEnabled to false"
+        private const val INVALID_BITRATE =
+            "The provided bitrate is smaller than what is needed for compression " +
+                    "try to set isMinBitRateEnabled to false"
+    }
+
 
     var isRunning = true
 
     suspend fun compressVideo(
-        index: Int,
         context: Context,
         srcUri: Uri,
         destination: String,
@@ -61,7 +63,6 @@ object Compressor {
         } catch (exception: IllegalArgumentException) {
             printException(exception)
             return@withContext Result(
-                index,
                 success = false,
                 failureMessage = "${exception.message}"
             )
@@ -88,7 +89,6 @@ object Compressor {
         if (rotationData.isNullOrEmpty() || bitrateData.isNullOrEmpty() || durationData.isNullOrEmpty()) {
             // Exit execution
             return@withContext Result(
-                index,
                 success = false,
                 failureMessage = "Failed to extract video meta-data, please try again"
             )
@@ -101,7 +101,7 @@ object Compressor {
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
         if (configuration.isMinBitrateCheckEnabled && bitrate <= MIN_BITRATE)
-            return@withContext Result(index, success = false, failureMessage = INVALID_BITRATE)
+            return@withContext Result(success = false, failureMessage = INVALID_BITRATE)
 
         //Handle new bitrate value
         val newBitrate: Int =
@@ -132,7 +132,6 @@ object Compressor {
         }
 
         return@withContext start(
-            index,
             newWidth!!,
             newHeight!!,
             destination,
@@ -148,7 +147,6 @@ object Compressor {
 
     @Suppress("DEPRECATION")
     private fun start(
-        id: Int,
         newWidth: Int,
         newHeight: Int,
         destination: String,
@@ -288,9 +286,8 @@ object Compressor {
                                     extractor
                                 )
 
-                                compressionProgressListener.onProgressCancelled(id)
+                                compressionProgressListener.onProgressCancelled()
                                 return Result(
-                                    id,
                                     success = false,
                                     failureMessage = "The compression has stopped!"
                                 )
@@ -368,7 +365,6 @@ object Compressor {
                                             inputSurface.setPresentationTime(bufferInfo.presentationTimeUs * 1000)
 
                                             compressionProgressListener.onProgressChanged(
-                                                id,
                                                 bufferInfo.presentationTimeUs.toFloat() / duration.toFloat() * 100
                                             )
 
@@ -386,7 +382,7 @@ object Compressor {
 
                 } catch (exception: Exception) {
                     printException(exception)
-                    return Result(id, success = false, failureMessage = exception.message)
+                    return Result(success = false, failureMessage = exception.message)
                 }
 
                 dispose(
@@ -431,7 +427,6 @@ object Compressor {
                 }
             }
             return Result(
-                id,
                 success = true,
                 failureMessage = null,
                 size = resultFile.length(),
@@ -440,7 +435,6 @@ object Compressor {
         }
 
         return Result(
-            id,
             success = false,
             failureMessage = "Something went wrong, please try again"
         )

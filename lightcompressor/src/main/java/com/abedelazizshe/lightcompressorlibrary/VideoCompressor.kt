@@ -9,8 +9,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
-import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.compressVideo
-import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor.isRunning
+import com.abedelazizshe.lightcompressorlibrary.compressor.Compressor
 import com.abedelazizshe.lightcompressorlibrary.config.*
 import com.abedelazizshe.lightcompressorlibrary.video.Result
 import kotlinx.coroutines.*
@@ -24,9 +23,17 @@ enum class VideoQuality {
     VERY_HIGH, HIGH, MEDIUM, LOW, VERY_LOW
 }
 
-object VideoCompressor : CoroutineScope by MainScope() {
+class VideoCompressor private constructor(private val uri: Uri): CoroutineScope by MainScope() {
+
+    companion object {
+        fun createInstance(uri: Uri): VideoCompressor {
+            return VideoCompressor(uri = uri)
+        }
+    }
 
     private var job: Job? = null
+
+    private val compressor = Compressor()
 
     /**
      * This function compresses a given list of [uris] of video files and writes the compressed
@@ -61,11 +68,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
      * [Configuration.videoHeight] which is a custom height for the video. Must be specified with [Configuration.videoWidth]
      * [Configuration.videoWidth] which is a custom width for the video. Must be specified with [Configuration.videoHeight]
      */
-    @JvmStatic
-    @JvmOverloads
     fun start(
         context: Context,
-        uris: List<Uri>,
         isStreamable: Boolean = false,
         sharedStorageConfiguration: SharedStorageConfiguration? = null,
         appSpecificStorageConfiguration: AppSpecificStorageConfiguration? = null,
@@ -74,11 +78,10 @@ object VideoCompressor : CoroutineScope by MainScope() {
     ) {
         // Only one is allowed
         assert(sharedStorageConfiguration == null || appSpecificStorageConfiguration == null)
-        assert(configureWith.videoNames.size == uris.size)
 
         doVideoCompression(
             context,
-            uris,
+            uri,
             isStreamable,
             sharedStorageConfiguration,
             appSpecificStorageConfiguration,
@@ -90,15 +93,14 @@ object VideoCompressor : CoroutineScope by MainScope() {
     /**
      * Call this function to cancel video compression process which will call [CompressionListener.onCancelled]
      */
-    @JvmStatic
     fun cancel() {
         job?.cancel()
-        isRunning = false
+        compressor.isRunning = false
     }
 
     private fun doVideoCompression(
         context: Context,
-        uris: List<Uri>,
+        uri: Uri,
         isStreamable: Boolean,
         sharedStorageConfiguration: SharedStorageConfiguration?,
         appSpecificStorageConfiguration: AppSpecificStorageConfiguration?,
@@ -106,70 +108,65 @@ object VideoCompressor : CoroutineScope by MainScope() {
         listener: CompressionListener,
     ) {
         var streamableFile: File? = null
-        for (i in uris.indices) {
+        job = launch {
 
-            job = launch {
+            val job = async { getMediaPath(context, uri) }
+            val path = job.await()
 
-                val job = async { getMediaPath(context, uris[i]) }
-                val path = job.await()
+            val desFile = saveVideoFile(
+                context,
+                path,
+                sharedStorageConfiguration,
+                appSpecificStorageConfiguration,
+                isStreamable,
+                configuration.videoName,
+                shouldSave = false
+            )
 
-                val desFile = saveVideoFile(
+            if (isStreamable)
+                streamableFile = saveVideoFile(
                     context,
                     path,
                     sharedStorageConfiguration,
                     appSpecificStorageConfiguration,
-                    isStreamable,
-                    configuration.videoNames[i],
+                    null,
+                    configuration.videoName,
                     shouldSave = false
                 )
 
-                if (isStreamable)
-                    streamableFile = saveVideoFile(
+            desFile?.let {
+                compressor.isRunning = true
+                listener.onStart()
+                val result = startCompression(
+                    context,
+                    uri,
+                    desFile.path,
+                    streamableFile?.path,
+                    configuration,
+                    listener,
+                )
+
+                // Runs in Main(UI) Thread
+                if (result.success) {
+                    saveVideoFile(
                         context,
-                        path,
+                        result.path,
                         sharedStorageConfiguration,
                         appSpecificStorageConfiguration,
-                        null,
-                        configuration.videoNames[i],
-                        shouldSave = false
+                        isStreamable,
+                        configuration.videoName,
+                        shouldSave = true
                     )
 
-                desFile?.let {
-                    isRunning = true
-                    listener.onStart(i)
-                    val result = startCompression(
-                        i,
-                        context,
-                        uris[i],
-                        desFile.path,
-                        streamableFile?.path,
-                        configuration,
-                        listener,
-                    )
-
-                    // Runs in Main(UI) Thread
-                    if (result.success) {
-                        saveVideoFile(
-                            context,
-                            result.path,
-                            sharedStorageConfiguration,
-                            appSpecificStorageConfiguration,
-                            isStreamable,
-                            configuration.videoNames[i],
-                            shouldSave = true
-                        )
-
-                        listener.onSuccess(i, result.size, result.path)
-                    } else {
-                        listener.onFailure(i, result.failureMessage ?: "An error has occurred!")
-                    }
+                    listener.onSuccess(result.size, result.path)
+                } else {
+                    listener.onFailure(result.failureMessage ?: "An error has occurred!")
                 }
             }
         }
     }
 
     private suspend fun startCompression(
-        index: Int,
         context: Context,
         srcUri: Uri,
         destPath: String,
@@ -177,20 +174,19 @@ object VideoCompressor : CoroutineScope by MainScope() {
         configuration: Configuration,
         listener: CompressionListener,
     ): Result = withContext(Dispatchers.Default) {
-        return@withContext compressVideo(
-            index,
+        return@withContext compressor.compressVideo(
             context,
             srcUri,
             destPath,
             streamableFile,
             configuration,
             object : CompressionProgressListener {
-                override fun onProgressChanged(index: Int, percent: Float) {
-                    listener.onProgress(index, percent)
+                override fun onProgressChanged(percent: Float) {
+                    listener.onProgress(percent)
                 }
 
-                override fun onProgressCancelled(index: Int) {
-                    listener.onCancelled(index)
+                override fun onProgressCancelled() {
+                    listener.onCancelled()
                 }
             },
         )

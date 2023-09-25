@@ -1,6 +1,7 @@
 package com.abedelazizshe.lightcompressor
 
 import android.content.Context
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class RecyclerViewAdapter(private val context: Context, private val list: List<VideoDetailsModel>) :
+class RecyclerViewAdapter(private val context: Context, private val list: MutableList<VideoDetailsModel>) :
     RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -18,6 +19,28 @@ class RecyclerViewAdapter(private val context: Context, private val list: List<V
             .inflate(R.layout.recycler_view_item, parent, false)
 
         return ViewHolder(view)
+    }
+
+    fun addData(videoDetailsModel: VideoDetailsModel) {
+        if (list.find { it.uri == videoDetailsModel.uri } == null) {
+            list.add(videoDetailsModel)
+            notifyDataSetChanged()
+        }
+    }
+
+    fun refreshItem(videoDetailsModel: VideoDetailsModel) {
+        val index = list.indexOfFirst { it.uri == videoDetailsModel.uri }
+        if (index != -1) {
+            list.removeAt(index)
+            list.add(index, videoDetailsModel)
+        }
+    }
+
+    fun updateProgressForUri(uri: Uri, progress: Float) {
+        list.find { it.uri == uri }?.let { model ->
+            model.progress = progress
+            notifyDataSetChanged()
+        }
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
