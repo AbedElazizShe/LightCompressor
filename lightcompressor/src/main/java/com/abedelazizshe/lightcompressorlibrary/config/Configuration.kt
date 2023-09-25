@@ -10,7 +10,7 @@ data class Configuration(
     val keepOriginalResolution: Boolean = false,
     var videoHeight: Double? = null,
     var videoWidth: Double? = null,
-    var videoNames: List<String>
+    var videoName: String
 )
 
 data class AppSpecificStorageConfiguration(
