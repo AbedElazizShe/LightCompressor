@@ -94,9 +94,15 @@ object Compressor {
             )
         }
 
-        var rotation = rotationData.toInt()
-        val bitrate = bitrateData.toInt()
-        val duration = durationData.toLong() * 1000
+        var (rotation, bitrate, duration) = try {
+            Triple(rotationData.toInt(), bitrateData.toInt(), durationData.toLong() * 1000)
+        } catch (e: java.lang.Exception) {
+            return@withContext Result(
+                index,
+                success = false,
+                failureMessage = "Failed to extract video meta-data, please try again"
+            )
+        }
 
         // Check for a min video bitrate before compression
         // Note: this is an experimental value
