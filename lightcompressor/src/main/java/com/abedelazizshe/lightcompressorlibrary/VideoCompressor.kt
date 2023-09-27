@@ -149,7 +149,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
 
                     // Runs in Main(UI) Thread
                     if (result.success) {
-                        saveVideoFile(
+                        val savedFile = saveVideoFile(
                             context,
                             result.path,
                             sharedStorageConfiguration,
@@ -159,7 +159,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
                             shouldSave = true
                         )
 
-                        listener.onSuccess(i, result.size, result.path)
+                        listener.onSuccess(i, result.size, savedFile?.path)
                     } else {
                         listener.onFailure(i, result.failureMessage ?: "An error has occurred!")
                     }
@@ -235,6 +235,8 @@ object VideoCompressor : CoroutineScope by MainScope() {
                         else saveLocation
                     if (shouldSave == true) {
                         saveVideoInExternal(context, videoFileName, fullPath, videoFile)
+                        File(context.filesDir, videoFileName).delete()
+                        return File("/storage/emulated/0/${fullPath}", videoFileName)
                     }
                     return File(context.filesDir, videoFileName)
                 } else {

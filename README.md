@@ -16,17 +16,11 @@ I would like to mention that the set attributes for size and quality worked just
 
 # Change Logs
 
-## What's new in 1.3.1
+## What's new in 1.3.2
 
-- **Breaking** Minimum supported API is 24.
-- **Breaking** AppSpecificStorageConfiguration does not accept `videoName` anymore.
-- **Breaking** SharedStorageConfiguration does not accept `videoName` anymore.
-- **Breaking** Configuration requires a list of names for the videos passed to the library.
-- SharedStorageConfiguration accepts `subFolderName`.
-- Thanks to [mohammadnt](https://github.com/mohammadnt), Fix not playing video on Chrome mobile.
-- Thanks to [hpanahiird](https://github.com/hpanahiird) for probable fixes for issues [#135](https://github.com/AbedElazizShe/LightCompressor/issues/135) and [#137](https://github.com/AbedElazizShe/LightCompressor/issues/137)
-- Bugs fixes for [#151](https://github.com/AbedElazizShe/LightCompressor/issues/151), [#150](https://github.com/AbedElazizShe/LightCompressor/issues/150), [#148](https://github.com/AbedElazizShe/LightCompressor/issues/148), [#147](https://github.com/AbedElazizShe/LightCompressor/issues/147)
-  [#146](https://github.com/AbedElazizShe/LightCompressor/issues/146), [#143](https://github.com/AbedElazizShe/LightCompressor/issues/143), [#136](https://github.com/AbedElazizShe/LightCompressor/issues/136)
+- Bugs fixes.
+- Thanks to [vitorpamplona](https://github.com/vitorpamplona), Fixes a crash when the user tries a video with malformed bitrate information
+- Thanks to [amrreda1995](https://github.com/amrreda1995) for Force compressing code to run in IO thread
 
 
 ## How it works
@@ -225,7 +219,7 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.3.1) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1deImkOzB6cNVb6NoRXLcNw-kIMqEEmFB/view?usp=sharing).
+- If the bug/issue exists on the sample app (version 1.3.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1rflQ_elXn7uSbL_qBiruwJmPwZXjIyie/view?usp=sharing).
 
 ## Compatibility
 Minimum Android SDK: LightCompressor requires a minimum API level of 24.
@@ -255,7 +249,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.3.1'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.3.2'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:
