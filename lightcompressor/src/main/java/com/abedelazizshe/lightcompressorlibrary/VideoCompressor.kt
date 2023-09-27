@@ -108,7 +108,7 @@ object VideoCompressor : CoroutineScope by MainScope() {
         var streamableFile: File? = null
         for (i in uris.indices) {
 
-            job = launch {
+            job = launch(Dispatchers.IO) {
 
                 val job = async { getMediaPath(context, uris[i]) }
                 val path = job.await()
