@@ -133,6 +133,7 @@ object Compressor {
                 newWidth = tempHeight
                 0
             }
+
             180 -> 0
             else -> rotation
         }
@@ -248,6 +249,7 @@ object Compressor {
                                             )
                                             inputDone = true
                                         }
+
                                         else -> {
 
                                             decoder.queueInputBuffer(
@@ -309,14 +311,17 @@ object Compressor {
                             when {
                                 encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> encoderOutputAvailable =
                                     false
+
                                 encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                                     val newFormat = encoder.outputFormat
                                     if (videoTrackIndex == -5)
                                         videoTrackIndex = mediaMuxer.addTrack(newFormat, false)
                                 }
+
                                 encoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
                                     // ignore this status
                                 }
+
                                 encoderStatus < 0 -> throw RuntimeException("unexpected result from encoder.dequeueOutputBuffer: $encoderStatus")
                                 else -> {
                                     val encodedData = encoder.getOutputBuffer(encoderStatus)
@@ -345,12 +350,15 @@ object Compressor {
                             when {
                                 decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER -> decoderOutputAvailable =
                                     false
+
                                 decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
                                     // ignore this status
                                 }
+
                                 decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
                                     // ignore this status
                                 }
+
                                 decoderStatus < 0 -> throw RuntimeException("unexpected result from decoder.dequeueOutputBuffer: $decoderStatus")
                                 else -> {
                                     val doRender = bufferInfo.size != 0
@@ -514,15 +522,24 @@ object Compressor {
         // Log.i("encoderName", encoder.name)
         // c2.qti.avc.encoder results in a corrupted .mp4 video that does not play in
         // Mac and iphones
-        val encoder = if (hasQTI) {
+        var encoder = if (hasQTI) {
             MediaCodec.createByCodecName("c2.android.avc.encoder")
         } else {
             MediaCodec.createEncoderByType(MIME_TYPE)
         }
-        encoder.configure(
-            outputFormat, null, null,
-            MediaCodec.CONFIGURE_FLAG_ENCODE
-        )
+
+        try {
+            encoder.configure(
+                outputFormat, null, null,
+                MediaCodec.CONFIGURE_FLAG_ENCODE
+            )
+        } catch (e: Exception) {
+            encoder = MediaCodec.createEncoderByType(MIME_TYPE)
+            encoder.configure(
+                outputFormat, null, null,
+                MediaCodec.CONFIGURE_FLAG_ENCODE
+            )
+        }
 
         return encoder
     }

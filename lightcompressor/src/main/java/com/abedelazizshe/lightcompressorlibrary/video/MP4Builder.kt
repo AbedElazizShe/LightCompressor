@@ -135,7 +135,7 @@ class MP4Builder {
             "isom", "iso2", "mp41"
         )
 
-        return FileTypeBox("isom", 0, minorBrands)
+        return FileTypeBox("mp42", 0, minorBrands)
     }
 
     private fun gcd(a: Long, b: Long): Long {
@@ -239,18 +239,23 @@ class MP4Builder {
             track.getHandler() == "vide" -> {
                 minf.addBox(VideoMediaHeaderBox())
             }
+
             track.getHandler() == "soun" -> {
                 minf.addBox(SoundMediaHeaderBox())
             }
+
             track.getHandler() == "text" -> {
                 minf.addBox(NullMediaHeaderBox())
             }
+
             track.getHandler() == "subt" -> {
                 minf.addBox(SubtitleMediaHeaderBox())
             }
+
             track.getHandler() == "hint" -> {
                 minf.addBox(HintMediaHeaderBox())
             }
+
             track.getHandler() == "sbtl" -> {
                 minf.addBox(NullMediaHeaderBox())
             }

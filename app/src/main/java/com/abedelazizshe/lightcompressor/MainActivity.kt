@@ -211,7 +211,10 @@ class MainActivity : AppCompatActivity() {
                             index,
                             VideoDetailsModel("", uris[index], "")
                         )
-                        adapter.notifyDataSetChanged()
+                        runOnUiThread {
+                            adapter.notifyDataSetChanged()
+                        }
+
                     }
 
                     override fun onSuccess(index: Int, size: Long, path: String?) {
@@ -221,7 +224,9 @@ class MainActivity : AppCompatActivity() {
                             getFileSize(size),
                             100F
                         )
-                        adapter.notifyDataSetChanged()
+                        runOnUiThread {
+                            adapter.notifyDataSetChanged()
+                        }
                     }
 
                     override fun onFailure(index: Int, failureMessage: String) {
