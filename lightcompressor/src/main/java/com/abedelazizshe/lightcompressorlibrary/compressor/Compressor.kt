@@ -16,6 +16,7 @@ import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.printExcep
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setOutputFileParameters
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setUpMP4Movie
 import com.abedelazizshe.lightcompressorlibrary.utils.StreamableVideo
+import com.abedelazizshe.lightcompressorlibrary.utils.roundDimension
 import com.abedelazizshe.lightcompressorlibrary.video.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -114,10 +115,10 @@ object Compressor {
             else configuration.videoBitrateInMbps!! * 1000000
 
         //Handle new width and height values
-        val resizer = configuration.resizer;
-        val target = resizer?.resize(width, height) ?: Pair(width, height);
-        var newWidth = target.first.toInt();
-        var newHeight = target.second.toInt();
+        val resizer = configuration.resizer
+        val target = resizer?.resize(width, height) ?: Pair(width, height)
+        var newWidth = roundDimension(target.first)
+        var newHeight = roundDimension(target.second)
 
         //Handle rotation values and swapping height and width if needed
         rotation = when (rotation) {
