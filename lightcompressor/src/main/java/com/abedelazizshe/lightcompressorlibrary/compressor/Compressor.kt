@@ -8,7 +8,6 @@ import android.util.Log
 import com.abedelazizshe.lightcompressorlibrary.CompressionProgressListener
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.findTrack
-import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.generateWidthAndHeight
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.getBitrate
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.hasQTI
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.prepareVideoHeight
@@ -115,15 +114,10 @@ object Compressor {
             else configuration.videoBitrateInMbps!! * 1000000
 
         //Handle new width and height values
-        var (newWidth, newHeight) = if (configuration.videoHeight != null) Pair(
-            configuration.videoWidth?.toInt(),
-            configuration.videoHeight?.toInt()
-        )
-        else generateWidthAndHeight(
-            width,
-            height,
-            configuration.keepOriginalResolution
-        )
+        val resizer = configuration.resizer;
+        val target = resizer?.resize(width, height) ?: Pair(width, height);
+        var newWidth = target.first.toInt();
+        var newHeight = target.second.toInt();
 
         //Handle rotation values and swapping height and width if needed
         rotation = when (rotation) {
@@ -140,8 +134,8 @@ object Compressor {
 
         return@withContext start(
             index,
-            newWidth!!,
-            newHeight!!,
+            newWidth,
+            newHeight,
             destination,
             newBitrate,
             streamableFile,

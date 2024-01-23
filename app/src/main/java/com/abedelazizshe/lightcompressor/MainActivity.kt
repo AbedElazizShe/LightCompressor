@@ -23,6 +23,7 @@ import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
+import com.abedelazizshe.lightcompressorlibrary.config.VideoResizer
 import com.abedelazizshe.lightcompressorlibrary.config.SaveLocation
 import com.abedelazizshe.lightcompressorlibrary.config.SharedStorageConfiguration
 import kotlinx.coroutines.launch
@@ -190,6 +191,7 @@ class MainActivity : AppCompatActivity() {
                     quality = VideoQuality.LOW,
                     videoNames = uris.map { uri -> uri.pathSegments.last() },
                     isMinBitrateCheckEnabled = true,
+                    resizer = VideoResizer.limitSize(1280)
                 ),
                 listener = object : CompressionListener {
                     override fun onProgress(index: Int, percent: Float) {

@@ -7,9 +7,7 @@ data class Configuration(
     var isMinBitrateCheckEnabled: Boolean = true,
     var videoBitrateInMbps: Int? = null,
     var disableAudio: Boolean = false,
-    val keepOriginalResolution: Boolean = false,
-    var videoHeight: Double? = null,
-    var videoWidth: Double? = null,
+    val resizer: VideoResizer? = VideoResizer.auto,
     var videoNames: List<String>
 )
 
