@@ -28,7 +28,7 @@ data class Configuration(
         keepOriginalResolution: Boolean = false,
         videoHeight: Double? = null,
         videoWidth: Double? = null,
-        videoNames: List<String>) : this(quality, isMinBitrateCheckEnabled, videoBitrateInMbps, disableAudio, getVideoResizer(keepOriginalResolution, videoWidth, videoHeight), videoNames)
+        videoNames: List<String>) : this(quality, isMinBitrateCheckEnabled, videoBitrateInMbps, disableAudio, getVideoResizer(keepOriginalResolution, videoHeight, videoWidth), videoNames)
 }
 
 private fun getVideoResizer(keepOriginalResolution: Boolean, videoHeight: Double?, videoWidth: Double?): VideoResizer? =
