@@ -28,5 +28,5 @@ fun uInt32ToInt(uInt32: Int): Int {
 
 private fun roundEven(value: Int): Int = value + 1 and 1.inv()
 
-fun generateWidthHeightValue(value: Double, factor: Double): Int =
-    roundEven((((value * factor) / 16).roundToInt() * 16))
+fun roundDimension(value: Double): Int =
+    roundEven(((value / 16).roundToInt() * 16))

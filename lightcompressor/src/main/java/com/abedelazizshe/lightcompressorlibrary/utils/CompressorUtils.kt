@@ -195,44 +195,15 @@ object CompressorUtils {
      * Generate new width and height for source file
      * @param width file's original width
      * @param height file's original height
-     * @return new width and height pair
+     * @return the scale factor to apply to the video's resolution
      */
-    fun generateWidthAndHeight(
-        width: Double,
-        height: Double,
-        keepOriginalResolution: Boolean,
-    ): Pair<Int, Int> {
-
-        if (keepOriginalResolution) {
-            return Pair(width.roundToInt(), height.roundToInt())
+    fun autoResizePercentage(width: Double, height: Double): Double {
+        return when {
+            width >= 1920 || height >= 1920 -> 0.5
+            width >= 1280 || height >= 1280 -> 0.75
+            width >= 960 || height >= 960 -> 0.95
+            else -> 0.9
         }
-
-        val newWidth: Int
-        val newHeight: Int
-
-        when {
-            width >= 1920 || height >= 1920 -> {
-                newWidth = generateWidthHeightValue(width, 0.5)
-                newHeight = generateWidthHeightValue(height, 0.5)
-            }
-
-            width >= 1280 || height >= 1280 -> {
-                newWidth = generateWidthHeightValue(width, 0.75)
-                newHeight = generateWidthHeightValue(height, 0.75)
-            }
-
-            width >= 960 || height >= 960 -> {
-                newWidth = generateWidthHeightValue(width, 0.95)
-                newHeight = generateWidthHeightValue(height, 0.95)
-            }
-
-            else -> {
-                newWidth = generateWidthHeightValue(width, 0.9)
-                newHeight = generateWidthHeightValue(height, 0.9)
-            }
-        }
-
-        return Pair(newWidth, newHeight)
     }
 
     fun hasQTI(): Boolean {

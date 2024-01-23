@@ -57,7 +57,7 @@ when {
 }
 ```
 
-You can as well pass custom videoHeight, videoWidth, and videoBitrate values if you don't want the library to auto-generate the values for you. **The compression will fail if height or width is specified without the other, so ensure you pass both values**.
+You can as well pass custom resizer and videoBitrate values if you don't want the library to auto-generate the values for you.
 
 These values were tested on a huge set of videos and worked fine and fast with them. They might be changed based on the project needs and expectations.
 
@@ -136,11 +136,7 @@ or retrieve information about the original uri/file.
 
 - disableAudio: true/false to generate a video without audio. False by default.
 
-- keepOriginalResolution: true/false to tell the library not to change the resolution.
-
-- videoWidth: custom video width.
-
-- videoHeight: custom video height.
+- resizer: Function to resize the video dimensions. `VideoResizer.auto` by default.
 
 ### AppSpecificStorageConfiguration Configuration values
 
@@ -176,9 +172,7 @@ VideoCompressor.start(
       isMinBitrateCheckEnabled = true,
       videoBitrateInMbps = 5, /*Int, ignore, or null*/
       disableAudio = false, /*Boolean, or ignore*/
-      keepOriginalResolution = false, /*Boolean, or ignore*/
-      videoWidth = 360.0, /*Double, ignore, or null*/
-      videoHeight = 480.0 /*Double, ignore, or null*/
+      resizer = VideoResizer.matchSize(360, 480) /*VideoResizer, ignore, or null*/
    ),
    listener = object : CompressionListener {
        override fun onProgress(index: Int, percent: Float) {
