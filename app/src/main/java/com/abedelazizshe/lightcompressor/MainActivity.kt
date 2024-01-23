@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity() {
                     quality = VideoQuality.LOW,
                     videoNames = uris.map { uri -> uri.pathSegments.last() },
                     isMinBitrateCheckEnabled = true,
-                    resizer = VideoResizer.limitSize(1280)
+                    resizer = VideoResizer.limitSize(1280.0)
                 ),
                 listener = object : CompressionListener {
                     override fun onProgress(index: Int, percent: Float) {

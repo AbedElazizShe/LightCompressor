@@ -25,7 +25,7 @@ fun interface VideoResizer {
          * @param limit The maximum width and height of the video
          */
         @JvmStatic
-        fun limitSize(limit: Int): VideoResizer = LimitDimension(limit, limit)
+        fun limitSize(limit: Double): VideoResizer = LimitDimension(limit, limit)
 
         /**
          * Scale the video down if the width or height are greater than [maxWidth] or [maxHeight], retaining the video's aspect ratio.
@@ -33,14 +33,14 @@ fun interface VideoResizer {
          * @param maxHeight The maximum height of the video
          */
         @JvmStatic
-        fun limitSize(maxWidth: Int, maxHeight: Int): VideoResizer = LimitDimension(maxWidth, maxHeight)
+        fun limitSize(maxWidth: Double, maxHeight: Double): VideoResizer = LimitDimension(maxWidth, maxHeight)
 
         /**
          * Scales the video so that the width and height matches [size], retaining the video's aspect ratio.
          * @param size The target width/height of the video
          */
         @JvmStatic
-        fun matchSize(size: Int, stretch: Boolean = false): VideoResizer = MatchDimension(size, size, stretch)
+        fun matchSize(size: Double, stretch: Boolean = false): VideoResizer = MatchDimension(size, size, stretch)
 
         /**
          * Scales the video so that the width matches [width] or the height matches [height], retaining the video's aspect ratio.
@@ -48,7 +48,7 @@ fun interface VideoResizer {
          * @param height The target height of the video
          */
         @JvmStatic
-        fun matchSize(width: Int, height: Int, stretch: Boolean = false): VideoResizer = MatchDimension(width, height, stretch)
+        fun matchSize(width: Double, height: Double, stretch: Boolean = false): VideoResizer = MatchDimension(width, height, stretch)
 
         private fun keepAspect(width: Double, height: Double, newWidth: Double, newHeight: Double): Pair<Double, Double> {
             val desiredAspect = width / height
@@ -59,21 +59,15 @@ fun interface VideoResizer {
 
     fun resize(width: Double, height: Double): Pair<Double, Double>
 
-    private class LimitDimension(private val width: Int, private val height: Int) : VideoResizer {
+    private class LimitDimension(private val width: Double, private val height: Double) : VideoResizer {
         override fun resize(width: Double, height: Double): Pair<Double, Double> {
-            val newWidth = this.width.toDouble()
-            val newHeight = this.height.toDouble()
-
-            return if (width < newWidth && height < newHeight) Pair(width, height) else keepAspect(width, height, newWidth, newHeight)
+            return if (width < this.width && height < this.height) Pair(width, height) else keepAspect(width, height, this.width, this.height)
         }
     }
 
-    private class MatchDimension(private val width: Int, private val height: Int, private val stretch: Boolean) : VideoResizer {
+    private class MatchDimension(private val width: Double, private val height: Double, private val stretch: Boolean) : VideoResizer {
         override fun resize(width: Double, height: Double): Pair<Double, Double> {
-            var newWidth = this.width.toDouble()
-            var newHeight = this.height.toDouble()
-
-            return if (stretch) Pair(newWidth, newHeight) else keepAspect(width, height, newWidth, newHeight)
+            return if (stretch) Pair(this.width, this.height) else keepAspect(width, height, this.width, this.height)
         }
     }
 
