@@ -4,21 +4,49 @@ import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils
 
 fun interface VideoResizer {
     companion object {
+        /**
+         * Shrinks the video's resolution based on its original width and height.
+         * - 50% If the width or height is greater than or equal to 1920 pixels.
+         * - 75% If the width or height is greater than or equal to 1280 pixels.
+         * - 95% If the width or height is greater than or equal to 960 pixels.
+         * - 90% If the width and height are both less than 960 pixels.
+         */
         @JvmStatic
         val auto: VideoResizer = ScaleResize(null);
 
+        /**
+         * Resize the video dimensions by the given scale factor
+         */
         @JvmStatic
         fun scale(value: Double): VideoResizer = ScaleResize(value)
 
+        /**
+         * Scale the video down if the width or height are greater than [limit], retaining the video's aspect ratio.
+         * @param limit The maximum width and height of the video
+         */
         @JvmStatic
         fun limitSize(limit: Int): VideoResizer = LimitDimension(limit, limit)
 
+        /**
+         * Scale the video down if the width or height are greater than [maxWidth] or [maxHeight], retaining the video's aspect ratio.
+         * @param maxWidth The maximum width of the video
+         * @param maxHeight The maximum height of the video
+         */
         @JvmStatic
         fun limitSize(maxWidth: Int, maxHeight: Int): VideoResizer = LimitDimension(maxWidth, maxHeight)
 
+        /**
+         * Scales the video so that the width and height matches [size], retaining the video's aspect ratio.
+         * @param size The target width/height of the video
+         */
         @JvmStatic
         fun matchSize(size: Int, stretch: Boolean = false): VideoResizer = MatchDimension(size, size, stretch)
 
+        /**
+         * Scales the video so that the width matches [width] or the height matches [height], retaining the video's aspect ratio.
+         * @param width The target width of the video
+         * @param height The target height of the video
+         */
         @JvmStatic
         fun matchSize(width: Int, height: Int, stretch: Boolean = false): VideoResizer = MatchDimension(width, height, stretch)
 
