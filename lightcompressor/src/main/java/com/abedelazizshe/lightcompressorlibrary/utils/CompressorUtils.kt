@@ -5,6 +5,7 @@ import android.media.MediaCodecList
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
+import android.os.Build
 import android.util.Log
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.video.Mp4Movie
@@ -73,6 +74,17 @@ object CompressorUtils {
         val newFrameRate = getFrameRate(inputFormat)
         val iFrameInterval = getIFrameIntervalRate(inputFormat)
         outputFormat.apply {
+
+            // according to https://developer.android.com/media/optimize/sharing#b-frames_and_encoding_profiles
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val type = outputFormat.getString(MediaFormat.KEY_MIME)
+                val higherLevel = getHighestCodecProfileLevel(type)
+                Log.i("Output file parameters", "Selected CodecProfileLevel: $higherLevel")
+                setInteger(MediaFormat.KEY_PROFILE, higherLevel)
+            } else {
+                setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline)
+            }
+
             setInteger(
                 MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
@@ -244,6 +256,30 @@ object CompressorUtils {
             }
         }
         return false
+    }
+
+    /**
+     * Get the highest profile level supported by the AVC encoder: High > Main > Baseline
+     */
+    private fun getHighestCodecProfileLevel(type: String?): Int {
+        if (type == null) {
+            return MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+        }
+        val list = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
+        val capabilities = list
+            .filter { codec -> type in codec.supportedTypes && codec.name.contains("encoder") }
+            .mapNotNull { codec -> codec.getCapabilitiesForType(type) }
+
+        capabilities.forEach { capabilitiesForType ->
+            val levels =  capabilitiesForType.profileLevels.map { it.profile }
+            return when {
+                MediaCodecInfo.CodecProfileLevel.AVCProfileHigh in levels -> MediaCodecInfo.CodecProfileLevel.AVCProfileHigh
+                MediaCodecInfo.CodecProfileLevel.AVCProfileMain in levels -> MediaCodecInfo.CodecProfileLevel.AVCProfileMain
+                else -> MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
+            }
+        }
+
+        return MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline
     }
 }
 
