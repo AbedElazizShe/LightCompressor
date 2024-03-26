@@ -171,7 +171,7 @@ VideoCompressor.start(
        subFolderName = "my-videos" // => optional
    ),   
    configureWith = Configuration(
-      videoName = listOf<String>(), /*list of video names, the size should be similar to the passed uris*/
+      videoNames = listOf<String>(), /*list of video names, the size should be similar to the passed uris*/
       quality = VideoQuality.MEDIUM,
       isMinBitrateCheckEnabled = true,
       videoBitrateInMbps = 5, /*Int, ignore, or null*/
