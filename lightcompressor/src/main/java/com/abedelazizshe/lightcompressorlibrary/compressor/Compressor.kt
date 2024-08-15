@@ -58,7 +58,7 @@ object Compressor {
 
         try {
             mediaMetadataRetriever.setDataSource(context, srcUri)
-        } catch (exception: IllegalArgumentException) {
+        } catch (exception: Exception) {
             printException(exception)
             return@withContext Result(
                 index,
