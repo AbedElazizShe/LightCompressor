@@ -8,7 +8,6 @@ import android.util.Log
 import com.abedelazizshe.lightcompressorlibrary.CompressionProgressListener
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.findTrack
-import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.generateWidthAndHeight
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.getBitrate
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.hasQTI
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.prepareVideoHeight
@@ -17,6 +16,7 @@ import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.printExcep
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setOutputFileParameters
 import com.abedelazizshe.lightcompressorlibrary.utils.CompressorUtils.setUpMP4Movie
 import com.abedelazizshe.lightcompressorlibrary.utils.StreamableVideo
+import com.abedelazizshe.lightcompressorlibrary.utils.roundDimension
 import com.abedelazizshe.lightcompressorlibrary.video.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -115,15 +115,10 @@ object Compressor {
             else configuration.videoBitrateInMbps!! * 1000000
 
         //Handle new width and height values
-        var (newWidth, newHeight) = if (configuration.videoHeight != null) Pair(
-            configuration.videoWidth?.toInt(),
-            configuration.videoHeight?.toInt()
-        )
-        else generateWidthAndHeight(
-            width,
-            height,
-            configuration.keepOriginalResolution
-        )
+        val resizer = configuration.resizer
+        val target = resizer?.resize(width, height) ?: Pair(width, height)
+        var newWidth = roundDimension(target.first)
+        var newHeight = roundDimension(target.second)
 
         //Handle rotation values and swapping height and width if needed
         rotation = when (rotation) {
@@ -140,8 +135,8 @@ object Compressor {
 
         return@withContext start(
             index,
-            newWidth!!,
-            newHeight!!,
+            newWidth,
+            newHeight,
             destination,
             newBitrate,
             streamableFile,
