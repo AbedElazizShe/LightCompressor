@@ -180,13 +180,14 @@ class MainActivity : AppCompatActivity() {
                 context = applicationContext,
                 uris,
                 isStreamable = false,
-                sharedStorageConfiguration = SharedStorageConfiguration(
+                //storageConfiguration =  CacheStorageConfiguration(),
+                storageConfiguration = SharedStorageConfiguration(
                     saveAt = SaveLocation.movies,
                     subFolderName = "my-demo-videos"
                 ),
-//                appSpecificStorageConfiguration = AppSpecificStorageConfiguration(
-//
-//                ),
+                /*storageConfiguration = AppSpecificStorageConfiguration(
+                       subFolderName = "example"
+                   ),*/
                 configureWith = Configuration(
                     quality = VideoQuality.LOW,
                     videoNames = uris.map { uri -> uri.pathSegments.last() },

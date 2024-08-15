@@ -138,6 +138,11 @@ or retrieve information about the original uri/file.
 
 - resizer: Function to resize the video dimensions. `VideoResizer.auto` by default.
 
+
+## The StorageConfiguration is an interface which indicate library where will be saved the File
+
+#### Library provides some behaviors defined to be more easy to use, specified the next
+
 ### AppSpecificStorageConfiguration Configuration values
 
 - subFolderName: a subfolder name created in app's specific storage. 
@@ -147,6 +152,24 @@ or retrieve information about the original uri/file.
 - saveAt: the directory where the video should be saved in. Must be one of the following; [SaveLocation.pictures], [SaveLocation.movies], or [SaveLocation.downloads].
 - subFolderName: a subfolder name created in shared storage. 
 
+### CacheStorageConfiguration
+- There are no configuration values create a file in cache directory as Google defined, to get more info go to [here](https://developer.android.com/training/data-storage/app-specific?hl=es-419)
+
+### Fully custom configuration
+- If any of theese behaviors fit with your needs, you can create your own StorageConfiguration, just implement the interface and pass it to the library
+
+```kotlin
+class FullyCustomizedStorageConfiguration(
+) : StorageConfiguration {
+    override fun createFileToSave(
+        context: Context,
+        videoFile: File,
+        fileName: String,
+        shouldSave: Boolean
+    ): File = ??? What you need 
+}
+
+```
 
 To cancel the compression job, just call [VideoCompressor.cancel()]
 
@@ -157,15 +180,11 @@ VideoCompressor.start(
    context = applicationContext, // => This is required
    uris = List<Uri>, // => Source can be provided as content uris
    isStreamable = false, 
-   // THIS STORAGE 
-   sharedStorageConfiguration = SharedStorageConfiguration(
+   // THIS STORAGE
+   storageConfiguration = SharedStorageConfiguration(
        saveAt = SaveLocation.movies, // => default is movies
        subFolderName = "my-videos" // => optional
-   ),
-   // OR AND NOT BOTH
-   appSpecificStorageConfiguration = AppSpecificStorageConfiguration(
-       subFolderName = "my-videos" // => optional
-   ),   
+   )
    configureWith = Configuration(
       videoNames = listOf<String>(), /*list of video names, the size should be similar to the passed uris*/
       quality = VideoQuality.MEDIUM,
