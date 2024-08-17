@@ -180,18 +180,14 @@ class MainActivity : AppCompatActivity() {
                 context = applicationContext,
                 uris,
                 isStreamable = false,
-                //storageConfiguration =  CacheStorageConfiguration(),
                 storageConfiguration = SharedStorageConfiguration(
                     saveAt = SaveLocation.movies,
                     subFolderName = "my-demo-videos"
                 ),
-                /*storageConfiguration = AppSpecificStorageConfiguration(
-                       subFolderName = "example"
-                   ),*/
                 configureWith = Configuration(
                     quality = VideoQuality.LOW,
                     videoNames = uris.map { uri -> uri.pathSegments.last() },
-                    isMinBitrateCheckEnabled = true,
+                    isMinBitrateCheckEnabled = false,
                     resizer = VideoResizer.limitSize(1280.0)
                 ),
                 listener = object : CompressionListener {

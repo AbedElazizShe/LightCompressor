@@ -16,46 +16,19 @@ I would like to mention that the set attributes for size and quality worked just
 
 # Change Logs
 
-## What's new in 1.3.2
+## What's new in 1.3.3
 
-- Bugs fixes.
-- Thanks to [vitorpamplona](https://github.com/vitorpamplona), Fixes a crash when the user tries a video with malformed bitrate information
-- Thanks to [amrreda1995](https://github.com/amrreda1995) for Force compressing code to run in IO thread
+- Thanks to [LiewJunTung](https://github.com/AbedElazizShe/LightCompressor/pull/181) for improving the error handling.
+- Thanks to [CristianMG](https://github.com/AbedElazizShe/LightCompressor/pull/182) for improving the storage configuration and making the library testable.
+- Thanks to [dan3988](https://github.com/AbedElazizShe/LightCompressor/pull/188) for replacing video size with resizer which made using the library way more flexible.
+- Thanks to [imSzukala](https://github.com/AbedElazizShe/LightCompressor/pull/191) for changing min supported api to 21.
+- Thanks to [josebraz](https://github.com/AbedElazizShe/LightCompressor/pull/192) for improving codec profile approach.
+- Thanks to [ryccoatika](https://github.com/AbedElazizShe/LightCompressor/pull/198) for improving exception handling for the coroutines.
 
 
 ## How it works
 When the video file is called to be compressed, the library checks if the user wants to set a min bitrate to avoid compressing low resolution videos. This becomes handy if you don’t want the video to be compressed every time it is to be processed to avoid having very bad quality after multiple rounds of compression. The minimum is;
 * Bitrate: 2mbps
-
-You can pass one of a 5 video qualities; VERY_HIGH, HIGH, MEDIUM, LOW, OR VERY_LOW and the library will handle generating the right bitrate value for the output video
-```kotlin
-return when (quality) {
-    VideoQuality.VERY_LOW -> (bitrate * 0.1).roundToInt()
-    VideoQuality.LOW -> (bitrate * 0.2).roundToInt()
-    VideoQuality.MEDIUM -> (bitrate * 0.3).roundToInt()
-    VideoQuality.HIGH -> (bitrate * 0.4).roundToInt()
-    VideoQuality.VERY_HIGH -> (bitrate * 0.6).roundToInt()
-}
-
-when {
-   width >= 1920 || height >= 1920 -> {
-      newWidth = (((width * 0.5) / 16).roundToInt() * 16)
-      newHeight = (((height * 0.5) / 16f).roundToInt() * 16)
-   }
-   width >= 1280 || height >= 1280 -> {
-      newWidth = (((width * 0.75) / 16).roundToInt() * 16)
-      newHeight = (((height * 0.75) / 16).roundToInt() * 16)
-   }
-   width >= 960 || height >= 960 -> {
-      newWidth = (((width * 0.95) / 16).roundToInt() * 16)
-      newHeight = (((height * 0.95) / 16).roundToInt() * 16)
-   }
-   else -> {
-      newWidth = (((width * 0.9) / 16).roundToInt() * 16)
-      newHeight = (((height * 0.9) / 16).roundToInt() * 16)
-   }
-}
-```
 
 You can as well pass custom resizer and videoBitrate values if you don't want the library to auto-generate the values for you.
 
@@ -156,7 +129,7 @@ or retrieve information about the original uri/file.
 - There are no configuration values create a file in cache directory as Google defined, to get more info go to [here](https://developer.android.com/training/data-storage/app-specific?hl=es-419)
 
 ### Fully custom configuration
-- If any of theese behaviors fit with your needs, you can create your own StorageConfiguration, just implement the interface and pass it to the library
+- If any of these behaviors fit with your needs, you can create your own StorageConfiguration, just implement the interface and pass it to the library
 
 ```kotlin
 class FullyCustomizedStorageConfiguration(
@@ -232,10 +205,9 @@ from within the main thread. Have a look at the example code above for more info
 To report an issue, please specify the following:
 - Device name
 - Android version
-- If the bug/issue exists on the sample app (version 1.3.2) of the library that could be downloaded at this [link](https://drive.google.com/file/d/1rflQ_elXn7uSbL_qBiruwJmPwZXjIyie/view?usp=sharing).
 
 ## Compatibility
-Minimum Android SDK: LightCompressor requires a minimum API level of 24.
+Minimum Android SDK: LightCompressor requires a minimum API level of 21.
 
 ## How to add to your project?
 #### Gradle
@@ -262,7 +234,7 @@ Include this in your Module-level build.gradle file:
 ### Groovy
 
 ```groovy
-implementation 'com.github.AbedElazizShe:LightCompressor:1.3.2'
+implementation 'com.github.AbedElazizShe:LightCompressor:1.3.3'
 ```
 
 If you're facing problems with the setup, edit settings.gradle by adding this at the beginning of the file:

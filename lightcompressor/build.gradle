@@ -44,7 +44,7 @@ afterEvaluate {
                 from components.release
                 groupId = "com.github.AbedElazizShe"
                 artifactId = "LightCompressor"
-                version = '1.3.2'
+                version = '1.3.3'
             }
         }
     }
